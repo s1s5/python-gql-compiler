@@ -1,0 +1,29 @@
+# import "./schema.graphql"
+
+# query TestQuery($slugList: [ID!], $kind: AdditionalChildcareKind!) {
+#   posts {
+#     title
+#   }
+#   heavyPosts: posts(slugList: $slugList, kind: $kind) {
+#     title
+#   id
+#   title
+#   d
+#   dd
+#   ddd
+#   b
+#   bb
+#   }
+# }
+
+query Test2Query($slugList: [ID!], $kind: AdditionalChildcareKind!) {
+  posts {
+    title
+  }
+  heavyPosts: posts(slugList: $slugList, kind: $kind) {
+    title
+    author {
+      id
+    }
+  }
+}
