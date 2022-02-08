@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from xmlrpc.client import boolean
 
 from graphql import (
+    GraphQLEnumType,
     GraphQLInputObjectType,
     GraphQLList,
     GraphQLNonNull,
@@ -93,46 +94,34 @@ class CustomScalar:
 
 
 class Renderer:
-    def __init__(self, schema: GraphQLSchema) -> None:
+    def __init__(
+        self, schema: GraphQLSchema, custom_scalars: Dict[str, str] = {}, extra_import: str = ""
+    ) -> None:
         self.schema = schema
         self.scalar_map = {
-            'ID': 'str',
-            'Int': 'int',
-            'Float': 'float',
-            'Boolean': 'bool',
+            "ID": "str",
+            "Int": "int",
+            "Float": "float",
+            "Boolean": "bool",
         }
-        # self.config_path = config_path
-        self.custom_scalars = {}
-        # if config_path is not None:
-        #     spec = importlib.util.spec_from_file_location("config", config_path)
-        #     config = importlib.util.module_from_spec(spec)
-        #     assert isinstance(spec.loader, Loader)
-        #     spec.loader.exec_module(config)
-        #     assert hasattr(config, "custom_scalars"), "Custom scalars is not in config"
-        #     self.custom_scalars = getattr(config, "custom_scalars")
+        self.scalar_map.update(custom_scalars)
+        self.extra_import = extra_import
 
     def render(
         self,
         parsed_query_list: List[ParsedQuery],
-        # fragment_name_to_importpath: Dict[str, str],
-        # enum_name_to_importpath: Dict[str, str],
-        # input_name_to_importpath: Dict[str, str],
-        # config_importpath: Optional[str],
     ) -> str:
         buffer = CodeChunk()
         self.__write_file_header(buffer)
-        # buffer.write("from dataclasses import dataclass, field as _field")
-        # self.__render_customer_scalars_imports(buffer, config_importpath)
-        # buffer.write("from gql.compiler.runtime.variables import encode_variables")
         buffer.write("import typing")
         buffer.write("from gql import gql, Client")
-        # buffer.write("from gql.transport.exceptions import TransportQueryError")
-        # buffer.write("from functools import partial")
-        # buffer.write("from numbers import Number")
-        # buffer.write("from typing import Any, AsyncGenerator, Dict, List, Generator, Optional")
-        # buffer.write("from dataclasses_json import DataClassJsonMixin, config")
+        if self.extra_import:
+            buffer.write(self.extra_import)
 
         for query in parsed_query_list:
+            for enum_name, enum_type in query.used_enums.items():
+                self.render_enum(buffer, enum_name, enum_type)
+
             for class_name, class_type in reversed(query.used_input_types.items()):
                 self.render_input(buffer, class_name, class_type)
 
@@ -202,6 +191,10 @@ class Renderer:
         body = query.query.loc.source.body  # type: ignore
         return body[query.query.loc.start : query.query.loc.end]  # type: ignore
 
+    def render_enum(self, buffer: CodeChunk, name: str, enum_type: GraphQLEnumType):
+        enum_list = [f'"{x}"' for x in enum_type.values]
+        buffer.write(f"{name} = typing.Literal[{', '.join(enum_list)}]")
+
     def render_input(self, buffer: CodeChunk, name: str, input_type: GraphQLInputObjectType):
         # TODO: コード共通か
         r: List[str] = []
@@ -214,10 +207,14 @@ class Renderer:
             else:
                 r.append(s)
 
+        buffer.write("")
+        buffer.write("")
         buffer.write(f'{name}__required = typing.TypedDict("{name}__required", {"{"}{", ".join(r)}{"}"})')
         buffer.write(
             f'{name}__not_required = typing.TypedDict("{name}__not_required", {"{"}{", ".join(nr)}{"}"}, total=False)'
         )
+        buffer.write("")
+        buffer.write("")
         with buffer.write_block(f"class {name}({name}__required, {name}__not_required):"):
             buffer.write("pass")
 
@@ -226,6 +223,8 @@ class Renderer:
             f'"{field_name}": {self.type_to_string(field_value.type)}'
             for field_name, field_value in parsed_field.fields.items()
         ]
+        buffer.write("")
+        buffer.write("")
         buffer.write(f'{name} = typing.TypedDict("{name}", {"{"}{", ".join(r)}{"}"})')
 
     def type_to_string(self, type_: GraphQLOutputType, isnull: boolean = True) -> str:
@@ -260,10 +259,14 @@ class Renderer:
             else:
                 r.append(s)
 
+        buffer.write("")
+        buffer.write("")
         buffer.write(f'{name}__required = typing.TypedDict("{name}__required", {"{"}{", ".join(r)}{"}"})')
         buffer.write(
             f'{name}__not_required = typing.TypedDict("{name}__not_required", {"{"}{", ".join(nr)}{"}"}, total=False)'
         )
+        buffer.write("")
+        buffer.write("")
         with buffer.write_block(f"class {name}({name}__required, {name}__not_required):"):
             buffer.write("pass")
 

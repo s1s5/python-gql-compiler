@@ -16,23 +16,24 @@
 #   }
 # }
 
-# query Test2Query($slugList: [ID!], $kind: AdditionalChildcareKind! = DAILY) {
-#   posts {
-#     title
-#   }
-#   heavyPosts: posts(slugList: $slugList, kind: $kind) {
-#     title
-#     author {
-#       id
-#     }
-#   }
-# }
-
-query Test3Query($input: Posts2Input!) {
-  posts2(input: $input) {
+query Test2Query($slugList: [ID!], $kind: SpanKind! = DAILY) {
+  posts {
     title
+    span
+  }
+  heavyPosts: posts(slugList: $slugList, kind: $kind) {
+    title
+    author {
+      id
+    }
   }
 }
+
+# query Test3Query($input: Posts2Input!) {
+#   posts2(input: $input) {
+#     title
+#   }
+# }
 
 # query Test4Query($input: Posts2Input) {
 #   posts2(input: $input) {

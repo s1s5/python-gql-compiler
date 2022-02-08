@@ -103,6 +103,7 @@ class ParsedQuery:
     type_map: Dict[str, ParsedField] = field(default_factory=OrderedDict)
 
     used_input_types: Dict[str, GraphQLInputObjectType] = field(default_factory=dict)
+    used_enums: Dict[str, GraphQLEnumType] = field(default_factory=dict)
     variable_map: Dict[str, ParsedQueryVariable] = field(default_factory=OrderedDict)
 
 
@@ -135,6 +136,8 @@ class FieldToTypeMatcherVisitor(Visitor):
             for field_type in scalar_type.fields.values():  # type: ignore
                 field_type = strip_attribute(field_type.type)
                 self.register_input_type_recursive(field_type.name)
+        elif isinstance(scalar_type, GraphQLEnumType):
+            self.parsed.used_enums[scalar_type.name] = scalar_type
 
     # Document
     def enter_operation_definition(self, node: OperationDefinitionNode, *_):
@@ -205,6 +208,8 @@ class FieldToTypeMatcherVisitor(Visitor):
             type_name = "__".join([x.name for x in self.dfs_path] + [name])
             stripped_type_info.name = type_name
             self.parsed.type_map[type_name] = field
+        elif isinstance(stripped_type_info, GraphQLEnumType):
+            self.parsed.used_enums[stripped_type_info.name] = stripped_type_info
 
         self.current.fields[name] = field
         self.push(field)
