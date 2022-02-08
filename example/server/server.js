@@ -4,6 +4,8 @@ var { buildSchema } = require('graphql');
 
 // Construct a schema, using GraphQL schema language
 var schema = buildSchema(`
+scalar Date
+
   type Author {
   id: Int!
   firstName: String!
@@ -15,6 +17,8 @@ type Post {
   id: Int!
   title: String!
   author: Author
+f: Float
+d: Date
 }
 
 enum SpanKind {
@@ -36,7 +40,7 @@ var root = {
     posts: (args) => {
         console.log(args.slugList);
         return [{
-            id: 9, title: "post-title",
+            id: 9, title: "post-title", f: 0.9, d: '2022-01-01',
         }];
     }
 };
