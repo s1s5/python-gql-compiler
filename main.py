@@ -1,6 +1,6 @@
 import argparse
-import glob
-import os
+# import glob
+# import os
 from typing import List
 
 from graphql import GraphQLSchema, build_ast_schema

@@ -214,7 +214,7 @@ class InvalidQueryError(Exception):
         super().__init__(message)
 
 
-class QueryParser:
+class Parser:
     def __init__(self, schema: GraphQLSchema):
         self.schema = schema
 

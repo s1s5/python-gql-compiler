@@ -11,9 +11,9 @@ from graphql.language.parser import parse
 # from graphql.utilities.find_deprecated_usages import find_deprecated_usages
 
 # from .constant import ENUM_DIRNAME, INPUT_DIRNAME
-from .query_parser import InvalidQueryError, QueryParser
+from .parser import InvalidQueryError, Parser
 
-# from .renderer_dataclasses import DataclassesRenderer
+# from .renderer import Renderer
 # from .utils_codegen import CodeChunk, camel_case_to_lower_case
 
 
@@ -79,66 +79,66 @@ def get_import_path(filename, target_dirname):
     return importpath
 
 
-def process_file(
-    filename: str,
-    query: str,
-    schema: GraphQLSchema,
-    parser: QueryParser,
-    renderer,  # : DataclassesRenderer,
-    fragment_library: Dict[str, Tuple[str, str]],
-    enum_dir_path: str,
-    input_dir_path: str,
-    config_path: Optional[str],
-    verify: bool = False,
-) -> None:
-    full_fragments = "".join(
-        [query for fragment_filename, query in fragment_library.values() if fragment_filename != filename]
-    )
+# def process_file(
+#     filename: str,
+#     query: str,
+#     schema: GraphQLSchema,
+#     parser: QueryParser,
+#     renderer,  # : DataclassesRenderer,
+#     fragment_library: Dict[str, Tuple[str, str]],
+#     enum_dir_path: str,
+#     input_dir_path: str,
+#     config_path: Optional[str],
+#     verify: bool = False,
+# ) -> None:
+#     full_fragments = "".join(
+#         [query for fragment_filename, query in fragment_library.values() if fragment_filename != filename]
+#     )
 
-    target_filename = "".join([root_no_ext(filename), ".py"])
-    target_dirname = os.path.dirname(filename)
+#     target_filename = "".join([root_no_ext(filename), ".py"])
+#     target_dirname = os.path.dirname(filename)
 
-    try:
-        parsed = parser.parse(query, full_fragments)
-        fragment_name_to_importpath = {
-            name: get_import_path(details[0], target_dirname) for name, details in fragment_library.items()
-        }
+#     try:
+#         parsed = parser.parse(query, full_fragments)
+#         fragment_name_to_importpath = {
+#             name: get_import_path(details[0], target_dirname) for name, details in fragment_library.items()
+#         }
 
-        enum_name_to_importpath = {}
-        enums = renderer.render_enums(parsed)
-        for enum_name, code in enums.items():
-            target_enum_filename = os.path.join(enum_dir_path, "".join([camel_case_to_lower_case(enum_name), ".py"]))
-            verify_or_write_rendered(target_enum_filename, code, verify)
-            enum_name_to_importpath[enum_name] = get_import_path(target_enum_filename, target_dirname)
+#         enum_name_to_importpath = {}
+#         enums = renderer.render_enums(parsed)
+#         for enum_name, code in enums.items():
+#             target_enum_filename = os.path.join(enum_dir_path, "".join([camel_case_to_lower_case(enum_name), ".py"]))
+#             verify_or_write_rendered(target_enum_filename, code, verify)
+#             enum_name_to_importpath[enum_name] = get_import_path(target_enum_filename, target_dirname)
 
-        input_name_to_importpath = {}
-        input_objects = renderer.render_input_objects(
-            parsed,
-            get_import_path(config_path, input_dir_path) if config_path else None,
-        )
-        for input_object_name, code in input_objects.items():
-            target_input_object_filename = os.path.join(
-                input_dir_path,
-                "".join([camel_case_to_lower_case(input_object_name), ".py"]),
-            )
-            verify_or_write_rendered(target_input_object_filename, code, verify)
-            input_name_to_importpath[input_object_name] = get_import_path(target_input_object_filename, target_dirname)
+#         input_name_to_importpath = {}
+#         input_objects = renderer.render_input_objects(
+#             parsed,
+#             get_import_path(config_path, input_dir_path) if config_path else None,
+#         )
+#         for input_object_name, code in input_objects.items():
+#             target_input_object_filename = os.path.join(
+#                 input_dir_path,
+#                 "".join([camel_case_to_lower_case(input_object_name), ".py"]),
+#             )
+#             verify_or_write_rendered(target_input_object_filename, code, verify)
+#             input_name_to_importpath[input_object_name] = get_import_path(target_input_object_filename, target_dirname)
 
-        rendered = renderer.render(
-            parsed,
-            fragment_name_to_importpath,
-            enum_name_to_importpath,
-            input_name_to_importpath,
-            get_import_path(config_path, target_dirname) if config_path else None,
-        )
-        verify_or_write_rendered(target_filename, rendered, verify)
-    except (InvalidQueryError, AssertionError):
-        if verify:
-            print(f"Failed to verify graphql file {filename}")
-        else:
-            print(f"Failed to process graphql file {filename}")
-        safe_remove(target_filename)
-        raise
+#         rendered = renderer.render(
+#             parsed,
+#             fragment_name_to_importpath,
+#             enum_name_to_importpath,
+#             input_name_to_importpath,
+#             get_import_path(config_path, target_dirname) if config_path else None,
+#         )
+#         verify_or_write_rendered(target_filename, rendered, verify)
+#     except (InvalidQueryError, AssertionError):
+#         if verify:
+#             print(f"Failed to verify graphql file {filename}")
+#         else:
+#             print(f"Failed to process graphql file {filename}")
+#         safe_remove(target_filename)
+#         raise
 
 
 def run(
@@ -147,8 +147,8 @@ def run(
     graphql_file: List[str],
     config_path: Optional[str] = None,
 ) -> None:
-    query_parser = QueryParser(schema)
-    query_renderer = DataclassesRenderer(schema, config_path)
+    query_parser = Parser(schema)
+    # query_renderer = Renderer(schema, config_path)
     if queries_dir:
         graphql_file = graphql_file + list(glob.glob(os.path.join(queries_dir, "**/*.graphql"), recursive=True))
 
