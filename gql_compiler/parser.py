@@ -1,11 +1,15 @@
 from dataclasses import dataclass, field
+import copy
+from collections import OrderedDict
 from typing import Any, List, Mapping, Union, cast, Dict, Tuple
 
 from graphql import (
     GraphQLEnumType,
     GraphQLInputObjectType,
+    GraphQLIsTypeOfFn,
     GraphQLList,
     GraphQLNonNull,
+    GraphQLObjectType,
     GraphQLSchema,
     ListTypeNode,
     NonNullTypeNode,
@@ -21,14 +25,24 @@ from graphql import (
     visit,
 )
 from graphql.language import ExecutableDefinitionNode, VariableDefinitionNode, SelectionSetNode, FieldNode
+from graphql.type import GraphQLScalarType, GraphQLInterfaceType, GraphQLUnionType
 from graphql.validation.rules.no_unused_fragments import NoUnusedFragmentsRule
 from graphql.validation.specified_rules import specified_rules
+
+GraphQLOutputType = Union[
+    GraphQLScalarType,
+    GraphQLObjectType,
+    GraphQLInterfaceType,
+    GraphQLUnionType,
+    GraphQLEnumType,
+    #    GraphQLWrappingType,
+]
 
 
 @dataclass
 class ParsedField:
     name: str
-    # type: str
+    type: GraphQLOutputType
     # is_list: bool
     # nullable: bool
     # default_value: Any = None
@@ -52,20 +66,29 @@ class ParsedField:
 #     input_enums: List[ParsedEnum] = field(default_factory=list)
 
 
+def strip_attribute(type_info: GraphQLOutputType) -> GraphQLOutputType:
+    if isinstance(type_info, GraphQLNonNull):
+        return strip_attribute(type_info.of_type)  # type: ignore
+    if isinstance(type_info, GraphQLList):
+        return strip_attribute(type_info.of_type)  # type: ignore
+    return type_info
+
+
 @dataclass
 class ParsedQuery:
-    query: ExecutableDefinitionNode
+    query: OperationDefinitionNode
 
     name: str = field(default_factory=str)
     variable_definitions: Tuple[VariableDefinitionNode] = field(default_factory=tuple)
     fields: Dict[str, ParsedField] = field(default_factory=dict)
+    type_map: Dict[str, ParsedField] = field(default_factory=OrderedDict)
 
 
 NodeT = Union[ParsedField, ParsedQuery]
 
 
 class FieldToTypeMatcherVisitor(Visitor):
-    def __init__(self, schema: GraphQLSchema, type_info: TypeInfo, query: ExecutableDefinitionNode):
+    def __init__(self, schema: GraphQLSchema, type_info: TypeInfo, query: OperationDefinitionNode):
         super().__init__()
         self.schema = schema
         self.type_info = type_info
@@ -86,6 +109,7 @@ class FieldToTypeMatcherVisitor(Visitor):
     # Document
     def enter_operation_definition(self, node: OperationDefinitionNode, *_):
         self.parsed.variable_definitions = node.variable_definitions
+        self.parsed.name = node.name.value if node.name else ""
         self.push(self.parsed)
         return node
 
@@ -121,10 +145,24 @@ class FieldToTypeMatcherVisitor(Visitor):
     # Field
 
     def enter_field(self, node: FieldNode, *_):
-        print("enter_field", node, node.name.value)
-        field = ParsedField(node=node, name=node.name.value)
-        self.current.fields[node.name.value] = field
+        name = node.alias.value if node.alias else node.name.value
+        type_info: GraphQLOutputType = copy.deepcopy(self.type_info.get_type())  # type: ignore
+        assert type_info
+        print("enter_field", name, node, node.name.value, type_info)
+        print(node.alias, node.name.value, type_info, type(type_info))
+        stripped_type_info = strip_attribute(type_info)
+
+        # self.register_new_type(name, type_info, node)
+        field = ParsedField(node=node, name=name, type=type_info)
+
+        if isinstance(stripped_type_info, GraphQLObjectType):
+            type_name = "__".join([x.name for x in self.dfs_path] + [name])
+            stripped_type_info.name = type_name
+            self.parsed.type_map[type_name] = field
+
+        self.current.fields[name] = field
         self.push(field)
+
         # import code
         # code.interact(local=locals())
         # name = node.alias.value if node.alias else node.name.value
@@ -219,7 +257,7 @@ class Parser:
         self.schema = schema
 
     def parse(
-        self, query: ExecutableDefinitionNode, full_fragments: str = "", should_validate: bool = True
+        self, query: OperationDefinitionNode, full_fragments: str = "", should_validate: bool = True
     ) -> ParsedQuery:
         # query_document_ast = parse("".join([full_fragments, query]))
         # document_ast = parse(query)
@@ -227,7 +265,7 @@ class Parser:
         # if should_validate:
         #     errors = validate(
         #         self.schema,
-        #         query_document_ast,
+        #         query,
         #         [rule for rule in specified_rules if rule is not NoUnusedFragmentsRule],
         #     )
         #     if errors:

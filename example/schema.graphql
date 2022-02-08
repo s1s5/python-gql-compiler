@@ -1,5 +1,10 @@
 # schema.graphql
 
+scalar Date
+scalar DateTime
+scalar Time
+
+
 type Author {
   id: Int!
   firstName: String!
@@ -13,6 +18,13 @@ type Post {
   author: Author
 }
 
-type Query {
-  posts: [Post]
+enum SpanKind {
+  DAILY
+  MONTHLY
 }
+
+type Query {
+  hello: String
+  posts(slugList: [ID!], kind: SpanKind): [Post]
+}
+

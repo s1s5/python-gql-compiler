@@ -16,7 +16,7 @@
 #   }
 # }
 
-query Test2Query($slugList: [ID!], $kind: AdditionalChildcareKind!) {
+query Test2Query($slugList: [ID!], $kind: AdditionalChildcareKind! = DAILY) {
   posts {
     title
   }
