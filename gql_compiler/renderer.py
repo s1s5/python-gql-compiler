@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from xmlrpc.client import boolean
 
 from graphql import (
+    GraphQLInputObjectType,
     GraphQLList,
     GraphQLNonNull,
     GraphQLSchema,
@@ -22,6 +23,7 @@ from .parser import (
     GraphQLOutputType,
     ParsedField,
     ParsedQuery,
+    ParsedQueryVariable,
 )
 from .utils import camel_case_to_lower_case
 
@@ -90,21 +92,47 @@ class CustomScalar:
     mm_field: Optional[MarshmallowField] = None
 
 
-def render_model(buffer: CodeChunk, class_name: str, parsed_field: Union[ParsedField, ParsedQuery]):
-    buffer.write("")
-    buffer.write("")
-    buffer.write("@dataclass(frozen=True)")
-    with buffer.write_block(f"class {class_name}:"):
-        for field_name, field_value in parsed_field.fields.items():
-            buffer.write(f"{field_name} = {type_to_string(field_value.type)}")
+def get_query_body(query: ParsedQuery) -> str:
+    body = query.query.loc.source.body  # type: ignore
+    return body[query.query.loc.start : query.query.loc.end]  # type: ignore
 
 
-def type_to_string(type_: GraphQLOutputType) -> str:
+def render_input(buffer: CodeChunk, name: str, input_type: GraphQLInputObjectType):
+    # TODO: コード共通か
+    r: List[str] = []
+    nr: List[str] = []
+    for key, pqv in input_type.fields.items():  # type: ignore
+        type_: GraphQLOutputType = pqv.type  # type: ignore
+        s = f'"{key}": {type_to_string(type_)}'
+        if bool(pqv.default_value) or (not isinstance(type_, GraphQLNonNull)):
+            nr.append(s)
+        else:
+            r.append(s)
+
+    buffer.write(f'{name}__required = typing.TypedDict("{name}__required", {"{"}{", ".join(r)}{"}"})')
+    buffer.write(
+        f'{name}__not_required = typing.TypedDict("{name}__not_required", {"{"}{", ".join(nr)}{"}"}, total=False)'
+    )
+    with buffer.write_block(f"class {name}({name}__required, {name}__not_required):"):
+        buffer.write("pass")
+
+
+def render_model(buffer: CodeChunk, name: str, parsed_field: Union[ParsedField, ParsedQuery]):
+    r = [
+        f'"{field_name}": {type_to_string(field_value.type)}'
+        for field_name, field_value in parsed_field.fields.items()
+    ]
+    buffer.write(f'{name} = typing.TypedDict("{name}", {"{"}{", ".join(r)}{"}"})')
+
+
+def type_to_string(type_: GraphQLOutputType, isnull: boolean = True) -> str:
     if isinstance(type_, GraphQLNonNull):
-        return type_to_string(type_.of_type)  # type: ignore
+        return type_to_string(type_.of_type, isnull=False)  # type: ignore
     elif isinstance(type_, GraphQLList):
         return f"typing.List[{type_to_string(type_.of_type)}]"  # type: ignore
-    return f"typing.Optional[{type_.name}]"
+    if isnull:
+        return f"typing.Optional[{type_.name}]"
+    return type_.name
 
 
 def node_type_to_string(node: TypeNode, isnull: boolean = True) -> str:
@@ -119,6 +147,24 @@ def node_type_to_string(node: TypeNode, isnull: boolean = True) -> str:
     raise Exception("Unknown type node")
 
 
+def render_input_type(buffer: CodeChunk, name: str, variable_map: Dict[str, ParsedQueryVariable]):
+    r: List[str] = []
+    nr: List[str] = []
+    for key, pqv in variable_map.items():
+        s = f'"{key}": {node_type_to_string(pqv.type_node)}'
+        if pqv.is_undefinedable:
+            nr.append(s)
+        else:
+            r.append(s)
+
+    buffer.write(f'{name}__required = typing.TypedDict("{name}__required", {"{"}{", ".join(r)}{"}"})')
+    buffer.write(
+        f'{name}__not_required = typing.TypedDict("{name}__not_required", {"{"}{", ".join(nr)}{"}"}, total=False)'
+    )
+    with buffer.write_block(f"class {name}({name}__required, {name}__not_required):"):
+        buffer.write("pass")
+
+
 def write_execute_method(
     buffer: CodeChunk,
     query: ParsedQuery,
@@ -129,20 +175,18 @@ def write_execute_method(
     for variable in query.query.variable_definitions:
         var_type_str = node_type_to_string(variable.type)
         var_list.append(f"{variable.variable.name.value}: {var_type_str}")
-    vars_args = ""
-    if var_list:
-        vars_args = f', {", ".join(var_list)}'
-    variables_dict = "{}"
-    with buffer.write_block(f"def execute(cls, client: Client{vars_args})" f" -> {query.name}Response:"):
-        buffer.write(f"variables: Dict[str, Any] = {variables_dict}")
-        # scalars = ", custom_scalars" if config_importpath else ""
-        scalars = "{}"
-        buffer.write(f"new_variables = encode_variables(variables{scalars})")
-        buffer.write("response_text = client.execute(")
-        buffer.write('    gql("".join(set(QUERY))), variable_values=new_variables')
+
+    default_variable_values = ""
+    if all(x.is_undefinedable for x in query.variable_map.values()):
+        default_variable_values = " = {}"
+
+    with buffer.write_block(
+        f"def execute(cls, client: Client, variable_values: {query.name}Input{default_variable_values})"
+        f" -> {query.name}Response:"
+    ):
+        buffer.write("return client.execute(  # type: ignore")
+        buffer.write("    cls._query, variable_values=variable_values")
         buffer.write(")")
-        buffer.write(f"res = cls.{query.name}Response.from_dict(response_text)")
-        buffer.write(f"return res")
     buffer.write("")
 
 
@@ -169,24 +213,33 @@ class Renderer:
     ) -> str:
         buffer = CodeChunk()
         self.__write_file_header(buffer)
-        buffer.write("from dataclasses import dataclass, field as _field")
+        # buffer.write("from dataclasses import dataclass, field as _field")
         # self.__render_customer_scalars_imports(buffer, config_importpath)
-        buffer.write("from gql.compiler.runtime.variables import encode_variables")
+        # buffer.write("from gql.compiler.runtime.variables import encode_variables")
+        buffer.write("import typing")
         buffer.write("from gql import gql, Client")
-        buffer.write("from gql.transport.exceptions import TransportQueryError")
-        buffer.write("from functools import partial")
-        buffer.write("from numbers import Number")
-        buffer.write("from typing import Any, AsyncGenerator, Dict, List, Generator, Optional")
-        buffer.write("from dataclasses_json import DataClassJsonMixin, config")
+        # buffer.write("from gql.transport.exceptions import TransportQueryError")
+        # buffer.write("from functools import partial")
+        # buffer.write("from numbers import Number")
+        # buffer.write("from typing import Any, AsyncGenerator, Dict, List, Generator, Optional")
+        # buffer.write("from dataclasses_json import DataClassJsonMixin, config")
 
         for query in parsed_query_list:
+            for class_name, class_type in query.used_input_types.items():
+                render_input(buffer, class_name, class_type)
+
             for class_name, class_info in reversed(query.type_map.items()):
                 render_model(buffer, class_name, class_info)
             render_model(buffer, f"{query.name}Response", query)
 
+            render_input_type(buffer, f"{query.name}Input", query.variable_map)
+
             buffer.write("")
             buffer.write("")
-            with buffer.write_block(f"class {query.name}"):
+            with buffer.write_block(f"class {query.name}:"):
+                with buffer.write_block("_query = gql('''"):
+                    buffer.write(get_query_body(query))
+                buffer.write("''')")
                 if query.query.operation in (OperationType.QUERY, OperationType.MUTATION):
                     write_execute_method(buffer, query)
                 else:

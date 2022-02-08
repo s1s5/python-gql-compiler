@@ -23,8 +23,20 @@ enum SpanKind {
   MONTHLY
 }
 
+input A {
+  x: Date
+}
+
+input Posts2Input {
+  a: A
+  slug: ID!
+  title: String
+  y: Time
+}
+
 type Query {
   hello: String
   posts(slugList: [ID!], kind: SpanKind): [Post]
+  posts2(input: Posts2Input): [Post]
 }
 

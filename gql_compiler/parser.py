@@ -1,7 +1,9 @@
+from ast import type_ignore
 from dataclasses import dataclass, field
 import copy
 from collections import OrderedDict
 from typing import Any, List, Mapping, Union, cast, Dict, Tuple
+from xmlrpc.client import boolean
 
 from graphql import (
     GraphQLEnumType,
@@ -12,6 +14,7 @@ from graphql import (
     GraphQLObjectType,
     GraphQLSchema,
     ListTypeNode,
+    NamedTypeNode,
     NonNullTypeNode,
     OperationDefinitionNode,
     TypeInfo,
@@ -74,6 +77,22 @@ def strip_attribute(type_info: GraphQLOutputType) -> GraphQLOutputType:
     return type_info
 
 
+def strip_type_node_attribute(type_: TypeNode) -> NamedTypeNode:
+    if isinstance(type_, ListTypeNode):
+        return strip_type_node_attribute(type_.type)
+    elif isinstance(type_, NonNullTypeNode):
+        return strip_type_node_attribute(type_.type)
+    elif isinstance(type_, NamedTypeNode):
+        return type_
+    raise Exception(f"Unknown type node {type_}")
+
+
+@dataclass
+class ParsedQueryVariable:
+    is_undefinedable: boolean
+    type_node: TypeNode
+
+
 @dataclass
 class ParsedQuery:
     query: OperationDefinitionNode
@@ -82,6 +101,9 @@ class ParsedQuery:
     variable_definitions: Tuple[VariableDefinitionNode] = field(default_factory=tuple)
     fields: Dict[str, ParsedField] = field(default_factory=dict)
     type_map: Dict[str, ParsedField] = field(default_factory=OrderedDict)
+
+    used_input_types: Dict[str, GraphQLInputObjectType] = field(default_factory=dict)
+    variable_map: Dict[str, ParsedQueryVariable] = field(default_factory=OrderedDict)
 
 
 NodeT = Union[ParsedField, ParsedQuery]
@@ -106,9 +128,33 @@ class FieldToTypeMatcherVisitor(Visitor):
     def current(self) -> NodeT:
         return self.dfs_path[-1]
 
+    def register_input_type_recursive(self, name: str):
+        scalar_type = self.schema.type_map[name]
+        if isinstance(scalar_type, GraphQLInputObjectType):
+            self.parsed.used_input_types[name] = scalar_type
+            for field_type in scalar_type.fields.values():  # type: ignore
+                field_type = strip_attribute(field_type.type)
+                self.register_input_type_recursive(field_type.name)
+
     # Document
     def enter_operation_definition(self, node: OperationDefinitionNode, *_):
         self.parsed.variable_definitions = node.variable_definitions
+        for variable in node.variable_definitions:
+            key = variable.variable.name.value
+            is_undefinedable = bool(variable.default_value) or (
+                not isinstance(variable.type, NonNullTypeNode)
+            )
+            stripped_type = strip_type_node_attribute(variable.type)
+            self.register_input_type_recursive(stripped_type.name.value)
+            # scalar_type = self.schema.type_map[stripped_type.name.value]
+            # if isinstance(scalar_type, GraphQLInputObjectType):
+            #     self.parsed.used_input_types[stripped_type.name.value] = scalar_type
+
+            # print(key, is_undefinedable)
+            self.parsed.variable_map[key] = ParsedQueryVariable(
+                is_undefinedable=is_undefinedable, type_node=variable.type
+            )
+
         self.parsed.name = node.name.value if node.name else ""
         self.push(self.parsed)
         return node
@@ -148,8 +194,8 @@ class FieldToTypeMatcherVisitor(Visitor):
         name = node.alias.value if node.alias else node.name.value
         type_info: GraphQLOutputType = copy.deepcopy(self.type_info.get_type())  # type: ignore
         assert type_info
-        print("enter_field", name, node, node.name.value, type_info)
-        print(node.alias, node.name.value, type_info, type(type_info))
+        # print("enter_field", name, node, node.name.value, type_info)
+        # print(node.alias, node.name.value, type_info, type(type_info))
         stripped_type_info = strip_attribute(type_info)
 
         # self.register_new_type(name, type_info, node)
@@ -182,7 +228,7 @@ class FieldToTypeMatcherVisitor(Visitor):
         return node
 
     def leave_field(self, node: FieldNode, *_):
-        print("leave field", node, node.name.value)
+        # print("leave field", node, node.name.value)
         self.pull()
         return node
 

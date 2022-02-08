@@ -33,6 +33,12 @@ var root = {
     hello: () => {
         return 'Hello world!';
     },
+    posts: (args) => {
+        console.log(args.slugList);
+        return [{
+            id: 9, title: "post-title",
+        }];
+    }
 };
 
 var app = express();

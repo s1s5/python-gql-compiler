@@ -16,14 +16,32 @@
 #   }
 # }
 
-query Test2Query($slugList: [ID!], $kind: AdditionalChildcareKind! = DAILY) {
-  posts {
+# query Test2Query($slugList: [ID!], $kind: AdditionalChildcareKind! = DAILY) {
+#   posts {
+#     title
+#   }
+#   heavyPosts: posts(slugList: $slugList, kind: $kind) {
+#     title
+#     author {
+#       id
+#     }
+#   }
+# }
+
+query Test3Query($input: Posts2Input!) {
+  posts2(input: $input) {
     title
-  }
-  heavyPosts: posts(slugList: $slugList, kind: $kind) {
-    title
-    author {
-      id
-    }
   }
 }
+
+# query Test4Query($input: Posts2Input) {
+#   posts2(input: $input) {
+#     title
+#   }
+# }
+
+# query Foo($slugList: [ID!]) {
+#       posts(slugList: $slugList) {
+#         title
+#       }
+#     }
