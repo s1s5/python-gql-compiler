@@ -16,22 +16,17 @@ from .types import Config
 
 def run(
     schema: GraphQLSchema,
-    queries_dir: str,
-    graphql_file: List[str],
+    query_files: List[str],
     config: Config,
 ) -> None:
     query_parser = Parser(schema)
     query_renderer = Renderer(schema, scalar_map=config["scalar_map"])
-    if queries_dir:
-        graphql_file = graphql_file + list(
-            glob.glob(os.path.join(queries_dir, "**/*.graphql"), recursive=True)
-        )
 
     operation_library: Dict[str, List[OperationDefinitionNode]] = defaultdict(list)
     fragment_library: Dict[str, List[FragmentDefinitionNode]] = defaultdict(list)
 
     rules = [rule for rule in specified_rules if rule is not NoUnusedFragmentsRule]
-    for filename in graphql_file:
+    for filename in query_files:
         parsed_query = parse(open(filename, "r").read())
         errors = validate(schema, parsed_query, rules)
         if errors:
