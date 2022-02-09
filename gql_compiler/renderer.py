@@ -103,6 +103,7 @@ class Renderer:
             "Int": "int",
             "Float": "float",
             "Boolean": "bool",
+            "String": "str",
         }
         self.scalar_map.update(custom_scalars)
         self.extra_import = extra_import
@@ -126,8 +127,9 @@ class Renderer:
                 self.render_input(buffer, class_name, class_type)
 
             for class_name, class_info in reversed(query.type_map.items()):
-                self.render_model(buffer, class_name, class_info)
-            self.render_model(buffer, f"{query.name}Response", query)
+                self.render_model(buffer, class_name, class_info, query)
+
+            self.render_model(buffer, f"{query.name}Response", query, query)
 
             self.render_input_type(buffer, f"{query.name}Input", query.variable_map)
 
@@ -218,16 +220,51 @@ class Renderer:
         with buffer.write_block(f"class {name}({name}__required, {name}__not_required):"):
             buffer.write("pass")
 
-    def render_model(self, buffer: CodeChunk, name: str, parsed_field: Union[ParsedField, ParsedQuery]):
-        r = [
-            f'"{field_name}": {self.type_to_string(field_value.type)}'
-            for field_name, field_value in parsed_field.fields.items()
-        ]
-        buffer.write("")
-        buffer.write("")
-        buffer.write(f'{name} = typing.TypedDict("{name}", {"{"}{", ".join(r)}{"}"})')
+    def get_field_type_mapping(
+        self, parsed_field: Union[ParsedField, ParsedQuery], parsed_query: ParsedQuery
+    ) -> Dict[str, str]:
+        m = {}
+        if isinstance(parsed_field, ParsedField):
+            if parsed_field.interface:
+                m = self.get_field_type_mapping(parsed_field.interface, parsed_query=parsed_query)
+        m.update(
+            {
+                field_name: self.type_to_string(field_value.type)
+                for field_name, field_value in parsed_field.fields.items()
+            }
+        )
+        if isinstance(parsed_field, ParsedField) and "__typename" in m:
+            name = parsed_field.type.name
+            print(parsed_field, parsed_field.type.name)
+            types = [f'"{x}"' for x in parsed_query.type_name_mapping[name]]
+            m["__typename"] = f"typing.Literal[{', '.join(types)}]"
+        return m
 
-    def type_to_string(self, type_: GraphQLOutputType, isnull: boolean = True) -> str:
+    def render_model(
+        self,
+        buffer: CodeChunk,
+        name: str,
+        parsed_field: Union[ParsedField, ParsedQuery],
+        parsed_query: ParsedQuery,
+    ):
+        field_mapping = self.get_field_type_mapping(parsed_field, parsed_query)
+        r = [f'"{key}": {value}' for key, value in field_mapping.items()]
+        buffer.write("")
+        buffer.write("")
+        type_str = f'typing.TypedDict("{name}", {"{"}{", ".join(r)}{"}"})'
+        if isinstance(parsed_field, ParsedField):
+            if parsed_field.inline_fragments:
+                type_str = f'typing.TypedDict("__{name}", {"{"}{", ".join(r)}{"}"})'
+                buffer.write(f"__{name} = {type_str}")
+                types = [f"{parsed_field.type.name}__{x}" for x in parsed_field.inline_fragments]
+                type_str = f"typing.Union[__{name}, {', '.join(types)}]"
+        buffer.write(f"{name} = {type_str}")
+
+    def type_to_string(
+        self,
+        type_: GraphQLOutputType,
+        isnull: boolean = True,
+    ) -> str:
         if isinstance(type_, GraphQLNonNull):
             return self.type_to_string(type_.of_type, isnull=False)  # type: ignore
         elif isinstance(type_, GraphQLList):

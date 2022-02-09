@@ -2,7 +2,8 @@ from ast import type_ignore
 from dataclasses import dataclass, field
 import copy
 from collections import OrderedDict
-from typing import Any, List, Mapping, Union, cast, Dict, Tuple
+from re import M
+from typing import Any, List, Mapping, Optional, Set, Union, cast, Dict, Tuple
 from xmlrpc.client import boolean
 
 from graphql import (
@@ -13,6 +14,7 @@ from graphql import (
     GraphQLNonNull,
     GraphQLObjectType,
     GraphQLSchema,
+    InlineFragmentNode,
     ListTypeNode,
     NamedTypeNode,
     NonNullTypeNode,
@@ -49,8 +51,10 @@ class ParsedField:
     # is_list: bool
     # nullable: bool
     # default_value: Any = None
-    node: FieldNode
+    node: Union[FieldNode, InlineFragmentNode]
     fields: Dict[str, "ParsedField"] = field(default_factory=dict)
+    inline_fragments: Dict[str, "ParsedField"] = field(default_factory=dict)
+    interface: Optional["ParsedField"] = None
 
 
 # @dataclass
@@ -69,11 +73,11 @@ class ParsedField:
 #     input_enums: List[ParsedEnum] = field(default_factory=list)
 
 
-def strip_attribute(type_info: GraphQLOutputType) -> GraphQLOutputType:
+def strip_output_type_attribute(type_info: GraphQLOutputType) -> GraphQLOutputType:
     if isinstance(type_info, GraphQLNonNull):
-        return strip_attribute(type_info.of_type)  # type: ignore
+        return strip_output_type_attribute(type_info.of_type)  # type: ignore
     if isinstance(type_info, GraphQLList):
-        return strip_attribute(type_info.of_type)  # type: ignore
+        return strip_output_type_attribute(type_info.of_type)  # type: ignore
     return type_info
 
 
@@ -105,6 +109,7 @@ class ParsedQuery:
     used_input_types: Dict[str, GraphQLInputObjectType] = field(default_factory=dict)
     used_enums: Dict[str, GraphQLEnumType] = field(default_factory=dict)
     variable_map: Dict[str, ParsedQueryVariable] = field(default_factory=OrderedDict)
+    type_name_mapping: Dict[str, Set[str]] = field(default_factory=dict)
 
 
 NodeT = Union[ParsedField, ParsedQuery]
@@ -122,7 +127,7 @@ class FieldToTypeMatcherVisitor(Visitor):
     def push(self, obj: NodeT):
         self.dfs_path.append(obj)
 
-    def pull(self) -> NodeT:
+    def pop(self) -> NodeT:
         return self.dfs_path.pop()
 
     @property
@@ -134,7 +139,7 @@ class FieldToTypeMatcherVisitor(Visitor):
         if isinstance(scalar_type, GraphQLInputObjectType):
             self.parsed.used_input_types[name] = scalar_type
             for field_type in scalar_type.fields.values():  # type: ignore
-                field_type = strip_attribute(field_type.type)
+                field_type = strip_output_type_attribute(field_type.type)
                 self.register_input_type_recursive(field_type.name)
         elif isinstance(scalar_type, GraphQLEnumType):
             self.parsed.used_enums[scalar_type.name] = scalar_type
@@ -168,7 +173,7 @@ class FieldToTypeMatcherVisitor(Visitor):
     #     return node
 
     # def leave_selection_set(self, node: SelectionSetNode, *_):
-    #     # self.pull()
+    #     # self.pop()
     #     return node
 
     # Fragments
@@ -185,11 +190,50 @@ class FieldToTypeMatcherVisitor(Visitor):
     #     self.parsed.used_fragments.append(node.name.value)
     #     return node
 
-    # def enter_inline_fragment(self, node, *_):
-    #     return node
-    #
-    # def leave_inline_fragment(self, node, *_):
-    #     return node
+    def get_available_typename(self, type_: Union[GraphQLObjectType, GraphQLInterfaceType]) -> Set[str]:
+        if isinstance(type_, GraphQLObjectType):
+            return set([type_.name])
+        elif isinstance(type_, GraphQLInterfaceType):
+            names = [type_.name]
+            for key, value in self.schema.type_map.items():
+                if not hasattr(value, "interfaces"):
+                    continue
+                if type_.name in [x.name for x in value.interfaces]:  # type: ignore
+                    names.append(key)
+            return set(names)
+        raise Exception(f"Unexpected type {type_}")
+
+    def enter_inline_fragment(self, node: InlineFragmentNode, *_):
+        print("enter_inline_fragment")
+        name = node.type_condition.name.value
+        type_info: GraphQLOutputType = copy.deepcopy(self.type_info.get_type())  # type: ignore
+        current = self.current
+        if not isinstance(current, ParsedField):
+            raise Exception("Unexpected")
+        field = ParsedField(node=node, name=name, type=type_info, interface=current)
+        stripped_type_info = strip_output_type_attribute(type_info)
+
+        if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType)):
+            type_name = "__".join([x.name for x in self.dfs_path] + [name])
+            self.parsed.type_name_mapping[type_name] = self.get_available_typename(stripped_type_info)
+            stripped_type_info.name = type_name
+            self.parsed.type_map[type_name] = field
+
+        current.inline_fragments[name] = field
+        self.push(field)
+
+        return node
+
+    def leave_inline_fragment(self, node: InlineFragmentNode, *_):
+        child = self.current
+        self.pop()
+        parent = self.current
+        if isinstance(child, ParsedField) and isinstance(parent, ParsedField):
+            child_type_name = strip_output_type_attribute(child.type).name
+            parent_type_name = strip_output_type_attribute(parent.type).name
+            m = self.parsed.type_name_mapping
+            m[parent_type_name] = m[parent_type_name] - m[child_type_name]
+        return node
 
     # Field
 
@@ -199,13 +243,14 @@ class FieldToTypeMatcherVisitor(Visitor):
         assert type_info
         # print("enter_field", name, node, node.name.value, type_info)
         # print(node.alias, node.name.value, type_info, type(type_info))
-        stripped_type_info = strip_attribute(type_info)
+        stripped_type_info = strip_output_type_attribute(type_info)
 
         # self.register_new_type(name, type_info, node)
         field = ParsedField(node=node, name=name, type=type_info)
 
-        if isinstance(stripped_type_info, GraphQLObjectType):
+        if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType)):
             type_name = "__".join([x.name for x in self.dfs_path] + [name])
+            self.parsed.type_name_mapping[type_name] = self.get_available_typename(stripped_type_info)
             stripped_type_info.name = type_name
             self.parsed.type_map[type_name] = field
         elif isinstance(stripped_type_info, GraphQLEnumType):
@@ -234,7 +279,7 @@ class FieldToTypeMatcherVisitor(Visitor):
 
     def leave_field(self, node: FieldNode, *_):
         # print("leave field", node, node.name.value)
-        self.pull()
+        self.pop()
         return node
 
     # def __parse_field(self, name, graphql_type):
