@@ -42,12 +42,13 @@ def run(
     for filename, definition_list in operation_library.items():
         parsed_list = [query_parser.parse(definition) for definition in definition_list]
 
-        dirname = os.path.dirname(filename)
-        basename = os.path.basename(filename)
-        basename_without_ext, ext = os.path.splitext(basename)
-        dst_path = config["output_path"].format(
-            dirname=dirname, basename=basename, basename_without_ext=basename_without_ext, ext=ext
-        )
-        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
-        with open(dst_path, 'w') as fp:
-            print(query_renderer.render(parsed_list), file=fp)
+        if config.get("output_path"):
+            dirname = os.path.dirname(filename)
+            basename = os.path.basename(filename)
+            basename_without_ext, ext = os.path.splitext(basename)
+            dst_path = config["output_path"].format(
+                dirname=dirname, basename=basename, basename_without_ext=basename_without_ext, ext=ext
+            )
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            with open(dst_path, "w") as fp:
+                print(query_renderer.render(parsed_list), file=fp)

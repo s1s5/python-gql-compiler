@@ -1,3 +1,4 @@
+import datetime
 import enum
 import typing
 
@@ -107,6 +108,10 @@ class Query:
     @strawberry.field
     def hello(self) -> str:
         return "hello world"
+
+    @strawberry.field
+    def today(self) -> datetime.date:
+        return datetime.datetime.now().date()
 
     @strawberry.field
     def hero(self, episode: Episode) -> Character:
