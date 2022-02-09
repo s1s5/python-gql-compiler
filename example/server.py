@@ -147,13 +147,13 @@ class Mutation:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def count(self, target: int = 10) -> int:
+    async def count(self, target: int = 10) -> typing.AsyncGenerator[int, None]:
         for i in range(target):
             yield i
             await asyncio.sleep(0.1)
 
     @strawberry.subscription
-    async def all_human(self, wait_sec: float = 0.1) -> Human:
+    async def all_human(self, wait_sec: float = 0.1) -> typing.AsyncGenerator[Human, None]:
         for human in human_map.values():
             yield human
             await asyncio.sleep(wait_sec)
