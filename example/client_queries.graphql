@@ -34,3 +34,32 @@ query GetUnion($text: String!) {
     ... on Starship { name }
   }
 }
+
+query GetRecursive($episode: Episode!) {
+  hero(episode: $episode) {
+    __typename
+    name
+    ... on Human {
+      friends {
+        __typename
+        ... on Human { name }
+        ... on Droid { id name }
+      }
+    }
+    ... on Droid {
+      primaryFunction
+      friends {
+        __typename
+        id
+        ... on Human {
+          name
+          starships { name }
+        }
+        ... on Droid {
+          name
+          friends { name }
+        }
+      }
+    }
+  }
+}
