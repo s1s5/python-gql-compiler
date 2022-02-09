@@ -155,7 +155,7 @@ class Renderer:
                     self.write_execute_method(buffer, query, async_=False)
                     self.write_execute_method(buffer, query, async_=True)
                 else:
-                    self.write_subscribe_method(buffer, query, async_=True)
+                    self.write_subscribe_method(buffer, query, async_=False)
                     self.write_subscribe_method(buffer, query, async_=True)
 
         buffer.insert(import_pos, [x for x in sorted(self.__extra_import) if x])
@@ -322,14 +322,14 @@ class Renderer:
         method_name = f"subscribe{'_async' if async_ else ''}"
         async_prefix = "async " if async_ else ""
         with buffer.write_block(
-            f"def {method_name}(cls, client: Client, variable_values: {query.name}Input{default_variable_values})"
+            f"{async_prefix}def {method_name}(cls, client: Client, variable_values: {query.name}Input{default_variable_values})"
             f" -> {query.name}Response:"
         ):
             with buffer.write_block(
-                f"{async_prefix}for r in client.{method_name}("
-                "cls._query, variable_values=variable_values)  # type: ignore"
+                f"{async_prefix}for r in client.subscribe("
+                "cls._query, variable_values=variable_values):  # type: ignore"
             ):
-                buffer.write(f"{async_prefix}yield r")
+                buffer.write(f"yield r")
 
     @staticmethod
     def __write_file_header(buffer: CodeChunk) -> None:

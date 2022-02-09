@@ -63,3 +63,15 @@ query GetRecursive($episode: Episode!) {
     }
   }
 }
+
+mutation AddStarship($input: AddStarshipInput!) {
+  addStarship(input: $input) {
+    id name
+  }
+}
+
+subscription AllHuman {
+  allHuman {
+    id name
+  }
+}

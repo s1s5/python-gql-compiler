@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import enum
 import typing
@@ -126,7 +127,39 @@ class Query:
         return [x for x in search_result_map.values() if text in x.name]
 
 
-schema = strawberry.Schema(query=Query)
+@strawberry.input
+class AddStarshipInput:
+    name: str
+
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    def add_starship(self, input: AddStarshipInput) -> Starship:
+        counter = len(starship_map) + 1
+        _id = strawberry.ID(f"s-{counter}")
+        starship = Starship(id=_id, name=input.name)
+        # starship_map[_id] = starship
+        # search_result_map.update(starship_map)
+        return starship
+
+
+@strawberry.type
+class Subscription:
+    @strawberry.subscription
+    async def count(self, target: int = 10) -> int:
+        for i in range(target):
+            yield i
+            await asyncio.sleep(0.1)
+
+    @strawberry.subscription
+    async def all_human(self, wait_sec: float = 0.1) -> Human:
+        for human in human_map.values():
+            yield human
+            await asyncio.sleep(wait_sec)
+
+
+schema = strawberry.Schema(query=Query, mutation=Mutation, subscription=Subscription)
 
 # show schema
 # $ python -m strawberry export-schema server:schema

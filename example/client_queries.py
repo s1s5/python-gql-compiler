@@ -316,3 +316,77 @@ class GetRecursive:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
+
+
+AddStarshipInput__required = typing.TypedDict("AddStarshipInput__required", {"name": str})
+AddStarshipInput__not_required = typing.TypedDict("AddStarshipInput__not_required", {}, total=False)
+
+
+class AddStarshipInput(AddStarshipInput__required, AddStarshipInput__not_required):
+    pass
+
+
+AddStarship__addStarship = typing.TypedDict("AddStarship__addStarship", {"id": str, "name": str})
+
+
+AddStarshipResponse = typing.TypedDict("AddStarshipResponse", {"addStarship": AddStarship__addStarship})
+
+
+AddStarshipInput__required = typing.TypedDict("AddStarshipInput__required", {"input": AddStarshipInput})
+AddStarshipInput__not_required = typing.TypedDict("AddStarshipInput__not_required", {}, total=False)
+
+
+class AddStarshipInput(AddStarshipInput__required, AddStarshipInput__not_required):
+    pass
+
+
+class AddStarship:
+    _query = gql('''
+        mutation AddStarship($input: AddStarshipInput!) {
+          addStarship(input: $input) {
+            id name
+          }
+        }
+    ''')
+    @classmethod
+    def execute(cls, client: Client, variable_values: AddStarshipInput) -> AddStarshipResponse:
+        return client.execute(  # type: ignore
+            cls._query, variable_values=variable_values
+        )
+    @classmethod
+    def execute_async(cls, client: Client, variable_values: AddStarshipInput) -> AddStarshipResponse:
+        return client.execute_async(  # type: ignore
+            cls._query, variable_values=variable_values
+        )
+
+
+AllHuman__allHuman = typing.TypedDict("AllHuman__allHuman", {"id": str, "name": str})
+
+
+AllHumanResponse = typing.TypedDict("AllHumanResponse", {"allHuman": AllHuman__allHuman})
+
+
+AllHumanInput__required = typing.TypedDict("AllHumanInput__required", {})
+AllHumanInput__not_required = typing.TypedDict("AllHumanInput__not_required", {}, total=False)
+
+
+class AllHumanInput(AllHumanInput__required, AllHumanInput__not_required):
+    pass
+
+
+class AllHuman:
+    _query = gql('''
+        subscription AllHuman {
+          allHuman {
+            id name
+          }
+        }
+    ''')
+    @classmethod
+    def subscribe(cls, client: Client, variable_values: AllHumanInput = {}) -> AllHumanResponse:
+        for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
+            yield r
+    @classmethod
+    async def subscribe_async(cls, client: Client, variable_values: AllHumanInput = {}) -> AllHumanResponse:
+        async for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
+            yield r
