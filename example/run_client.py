@@ -28,6 +28,7 @@ async def execute_async():
     result0 = await client_queries.GetScalar.execute_async(client)
     assert result0 == {"hello": "hello world"}
 
+
 asyncio.run(execute_async())
 
 
@@ -87,23 +88,24 @@ assert result6 == {
     }
 }
 
-result7 = client_queries.AddStarship.execute(client, {'input': {'name': 'HOGE'}})
-assert result7 == {'addStarship': {'id': 's-3', 'name': 'HOGE'}}
+result7 = client_queries.AddStarship.execute(client, {"input": {"name": "HOGE"}})
+assert result7 == {"addStarship": {"id": "s-3", "name": "HOGE"}}
 
 schema = client.schema
 
-async_transport = WebsocketsTransport(url='ws://localhost:8000')
+async_transport = WebsocketsTransport(url="ws://localhost:8000")
 client = Client(transport=async_transport, schema=schema)  # fetch_schema_from_transportには対応していない
 result8 = [x for x in client_queries.AllHuman.subscribe(client)]
-assert result8 == [{'allHuman': {'id': 'h-1', 'name': 'luke'}}, {'allHuman': {'id': 'h-2', 'name': 'obi'}}]
+assert result8 == [{"allHuman": {"id": "h-1", "name": "luke"}}, {"allHuman": {"id": "h-2", "name": "obi"}}]
 
 
 async def async_subscription_test():
-    transport = WebsocketsTransport(url='ws://localhost:8000')
+    transport = WebsocketsTransport(url="ws://localhost:8000")
     client = Client(transport=transport, schema=schema)
     result8 = [x async for x in client_queries.AllHuman.subscribe_async(client)]
     assert result8 == (
-        [{'allHuman': {'id': 'h-1', 'name': 'luke'}}, {'allHuman': {'id': 'h-2', 'name': 'obi'}}])
+        [{"allHuman": {"id": "h-1", "name": "luke"}}, {"allHuman": {"id": "h-2", "name": "obi"}}]
+    )
 
 
 asyncio.run(async_subscription_test())

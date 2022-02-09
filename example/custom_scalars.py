@@ -13,9 +13,7 @@ def parse_date_value(value: Any) -> datetime.date:
     return datetime.date.fromisoformat(value)
 
 
-def parse_date_literal(
-    value_node: ValueNode, variables: Optional[Dict[str, Any]] = None
-) -> datetime.date:
+def parse_date_literal(value_node: ValueNode, variables: Optional[Dict[str, Any]] = None) -> datetime.date:
     ast_value = value_from_ast_untyped(value_node, variables)
     return parse_date_value(ast_value)
 

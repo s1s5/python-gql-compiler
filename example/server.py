@@ -56,7 +56,7 @@ human_map: typing.Dict[strawberry.ID, Human] = {
         name="luke",
         appears_in=[Episode.NEWHOPE, Episode.EMPIRE],
         friend_ids=[strawberry.ID("h-2"), strawberry.ID("d-2")],
-        starship_ids=[strawberry.ID('s-2')],
+        starship_ids=[strawberry.ID("s-2")],
         total_credits=3,
     ),
     strawberry.ID("h-2"): Human(
@@ -64,7 +64,7 @@ human_map: typing.Dict[strawberry.ID, Human] = {
         name="obi",
         appears_in=[Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI],
         friend_ids=[strawberry.ID("h-1")],
-        starship_ids=[strawberry.ID('s-1')],
+        starship_ids=[strawberry.ID("s-1")],
         total_credits=3,
     ),
 }
