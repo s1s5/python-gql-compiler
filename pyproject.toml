@@ -8,6 +8,7 @@ authors = ["Your Name <you@example.com>"]
 python = "^3.8"
 gql = "3.0.0rc0"
 PyYAML = "^6.0"
+requests = "^2.27.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.931"

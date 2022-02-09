@@ -178,6 +178,12 @@ This command generates `example/client_queries.py`.
 python example/run_client.py 
 ```
 
+## run with docker
+
+``` shell
+docker run --rm -t -i --user=`id -u`:`id -g` -v `pwd`:/app --network=host s1s5/python-gql-compiler -s http://localhost:8000 -q ./example/client_queries.graphql
+```
+
 
 ## License
 
