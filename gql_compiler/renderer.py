@@ -1,3 +1,4 @@
+import enum
 import os
 from typing import Dict, List, Set, Union
 from xmlrpc.client import boolean
@@ -130,20 +131,30 @@ class Renderer:
             buffer.write(self.extra_import)
         import_pos = buffer.tell()
         self.__extra_import.clear()
+        rendered = set()
 
         for query in parsed_query_list:
             for enum_name, enum_type in query.used_enums.items():
+                if enum_name in rendered:
+                    continue
+                rendered.add(enum_name)
                 self.render_enum(buffer, enum_name, enum_type)
 
             for class_name, class_type in reversed(query.used_input_types.items()):
+                if class_name in rendered:
+                    continue
+                rendered.add(class_name)
                 self.render_input(buffer, class_name, class_type)
 
             for class_name, class_info in reversed(query.type_map.items()):
+                if class_name in rendered:
+                    continue
+                rendered.add(class_name)
                 self.render_model(buffer, class_name, class_info, query)
 
             self.render_model(buffer, f"{query.name}Response", query, query)
 
-            self.render_input_type(buffer, f"{query.name}Input", query.variable_map)
+            self.render_input_type(buffer, f"_{query.name}Input", query.variable_map)
 
             buffer.write("")
             buffer.write("")
@@ -299,11 +310,15 @@ class Renderer:
         if all(x.is_undefinedable for x in query.variable_map.values()):
             default_variable_values = " = {}"
         method_name = f"execute{'_async' if async_ else ''}"
+
+        response_type = f"{query.name}Response"
+        if async_:
+            response_type = f"typing.Awaitable[{response_type}]"
         # async_prefix = "async " if async_ else ""
         with buffer.write_block(
             f"def {method_name}(cls, client: Client, "
-            f"variable_values: {query.name}Input{default_variable_values})"
-            f" -> {query.name}Response:"
+            f"variable_values: _{query.name}Input{default_variable_values})"
+            f" -> {response_type}:"
         ):
             buffer.write(f"return client.{method_name}(  # type: ignore")
             buffer.write("    cls._query, variable_values=variable_values")
@@ -321,15 +336,18 @@ class Renderer:
             default_variable_values = " = {}"
         method_name = f"subscribe{'_async' if async_ else ''}"
         async_prefix = "async " if async_ else ""
+        response_type = f"typing.Iterable[{query.name}Response]"
+        if async_:
+            response_type = f"typing.AsyncIterable[{query.name}Response]"
         with buffer.write_block(
-            f"{async_prefix}def {method_name}(cls, client: Client, variable_values: {query.name}Input{default_variable_values})"
-            f" -> {query.name}Response:"
+            f"{async_prefix}def {method_name}(cls, client: Client, "
+            f"variable_values: _{query.name}Input{default_variable_values})"
+            f" -> {response_type}:"
         ):
             with buffer.write_block(
-                f"{async_prefix}for r in client.subscribe("
-                "cls._query, variable_values=variable_values):  # type: ignore"
+                f"{async_prefix}for r in client.{method_name}(" "cls._query, variable_values=variable_values):"
             ):
-                buffer.write(f"yield r")
+                buffer.write(f"yield r  # type: ignore")
 
     @staticmethod
     def __write_file_header(buffer: CodeChunk) -> None:

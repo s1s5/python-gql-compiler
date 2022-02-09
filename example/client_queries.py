@@ -8,11 +8,11 @@ import datetime
 GetScalarResponse = typing.TypedDict("GetScalarResponse", {"hello": str})
 
 
-GetScalarInput__required = typing.TypedDict("GetScalarInput__required", {})
-GetScalarInput__not_required = typing.TypedDict("GetScalarInput__not_required", {}, total=False)
+_GetScalarInput__required = typing.TypedDict("_GetScalarInput__required", {})
+_GetScalarInput__not_required = typing.TypedDict("_GetScalarInput__not_required", {}, total=False)
 
 
-class GetScalarInput(GetScalarInput__required, GetScalarInput__not_required):
+class _GetScalarInput(_GetScalarInput__required, _GetScalarInput__not_required):
     pass
 
 
@@ -23,12 +23,12 @@ class GetScalar:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetScalarInput = {}) -> GetScalarResponse:
+    def execute(cls, client: Client, variable_values: _GetScalarInput = {}) -> GetScalarResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetScalarInput = {}) -> GetScalarResponse:
+    def execute_async(cls, client: Client, variable_values: _GetScalarInput = {}) -> typing.Awaitable[GetScalarResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
@@ -41,11 +41,11 @@ GetObject__droid = typing.TypedDict("GetObject__droid", {"id": str, "name": str,
 GetObjectResponse = typing.TypedDict("GetObjectResponse", {"droid": GetObject__droid})
 
 
-GetObjectInput__required = typing.TypedDict("GetObjectInput__required", {"id": str})
-GetObjectInput__not_required = typing.TypedDict("GetObjectInput__not_required", {}, total=False)
+_GetObjectInput__required = typing.TypedDict("_GetObjectInput__required", {"id": str})
+_GetObjectInput__not_required = typing.TypedDict("_GetObjectInput__not_required", {}, total=False)
 
 
-class GetObjectInput(GetObjectInput__required, GetObjectInput__not_required):
+class _GetObjectInput(_GetObjectInput__required, _GetObjectInput__not_required):
     pass
 
 
@@ -58,16 +58,15 @@ class GetObject:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetObjectInput) -> GetObjectResponse:
+    def execute(cls, client: Client, variable_values: _GetObjectInput) -> GetObjectResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetObjectInput) -> GetObjectResponse:
+    def execute_async(cls, client: Client, variable_values: _GetObjectInput) -> typing.Awaitable[GetObjectResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
-Episode = typing.Literal["NEWHOPE", "EMPIRE", "JEDI"]
 
 
 GetInterface__hero = typing.TypedDict("GetInterface__hero", {"id": str, "name": str})
@@ -76,11 +75,11 @@ GetInterface__hero = typing.TypedDict("GetInterface__hero", {"id": str, "name": 
 GetInterfaceResponse = typing.TypedDict("GetInterfaceResponse", {"hero": GetInterface__hero})
 
 
-GetInterfaceInput__required = typing.TypedDict("GetInterfaceInput__required", {"e": Episode})
-GetInterfaceInput__not_required = typing.TypedDict("GetInterfaceInput__not_required", {}, total=False)
+_GetInterfaceInput__required = typing.TypedDict("_GetInterfaceInput__required", {"e": Episode})
+_GetInterfaceInput__not_required = typing.TypedDict("_GetInterfaceInput__not_required", {}, total=False)
 
 
-class GetInterfaceInput(GetInterfaceInput__required, GetInterfaceInput__not_required):
+class _GetInterfaceInput(_GetInterfaceInput__required, _GetInterfaceInput__not_required):
     pass
 
 
@@ -93,16 +92,15 @@ class GetInterface:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetInterfaceInput) -> GetInterfaceResponse:
+    def execute(cls, client: Client, variable_values: _GetInterfaceInput) -> GetInterfaceResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetInterfaceInput) -> GetInterfaceResponse:
+    def execute_async(cls, client: Client, variable_values: _GetInterfaceInput) -> typing.Awaitable[GetInterfaceResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
-Episode = typing.Literal["NEWHOPE", "EMPIRE", "JEDI"]
 
 
 GetInlineFragment__hero__Droid = typing.TypedDict("GetInlineFragment__hero__Droid", {"__typename": typing.Literal["Droid"], "id": str, "name": str, "primaryFunction": str})
@@ -118,11 +116,11 @@ GetInlineFragment__hero = typing.Union[__GetInlineFragment__hero, GetInlineFragm
 GetInlineFragmentResponse = typing.TypedDict("GetInlineFragmentResponse", {"hero": GetInlineFragment__hero})
 
 
-GetInlineFragmentInput__required = typing.TypedDict("GetInlineFragmentInput__required", {"e": Episode})
-GetInlineFragmentInput__not_required = typing.TypedDict("GetInlineFragmentInput__not_required", {}, total=False)
+_GetInlineFragmentInput__required = typing.TypedDict("_GetInlineFragmentInput__required", {"e": Episode})
+_GetInlineFragmentInput__not_required = typing.TypedDict("_GetInlineFragmentInput__not_required", {}, total=False)
 
 
-class GetInlineFragmentInput(GetInlineFragmentInput__required, GetInlineFragmentInput__not_required):
+class _GetInlineFragmentInput(_GetInlineFragmentInput__required, _GetInlineFragmentInput__not_required):
     pass
 
 
@@ -137,12 +135,12 @@ class GetInlineFragment:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetInlineFragmentInput) -> GetInlineFragmentResponse:
+    def execute(cls, client: Client, variable_values: _GetInlineFragmentInput) -> GetInlineFragmentResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetInlineFragmentInput) -> GetInlineFragmentResponse:
+    def execute_async(cls, client: Client, variable_values: _GetInlineFragmentInput) -> typing.Awaitable[GetInlineFragmentResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
@@ -151,11 +149,11 @@ class GetInlineFragment:
 GetCustomScalarResponse = typing.TypedDict("GetCustomScalarResponse", {"today": datetime.date})
 
 
-GetCustomScalarInput__required = typing.TypedDict("GetCustomScalarInput__required", {})
-GetCustomScalarInput__not_required = typing.TypedDict("GetCustomScalarInput__not_required", {}, total=False)
+_GetCustomScalarInput__required = typing.TypedDict("_GetCustomScalarInput__required", {})
+_GetCustomScalarInput__not_required = typing.TypedDict("_GetCustomScalarInput__not_required", {}, total=False)
 
 
-class GetCustomScalarInput(GetCustomScalarInput__required, GetCustomScalarInput__not_required):
+class _GetCustomScalarInput(_GetCustomScalarInput__required, _GetCustomScalarInput__not_required):
     pass
 
 
@@ -166,12 +164,12 @@ class GetCustomScalar:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetCustomScalarInput = {}) -> GetCustomScalarResponse:
+    def execute(cls, client: Client, variable_values: _GetCustomScalarInput = {}) -> GetCustomScalarResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetCustomScalarInput = {}) -> GetCustomScalarResponse:
+    def execute_async(cls, client: Client, variable_values: _GetCustomScalarInput = {}) -> typing.Awaitable[GetCustomScalarResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
@@ -196,11 +194,11 @@ GetUnion__search = typing.Union[__GetUnion__search, GetUnion__search__Human, Get
 GetUnionResponse = typing.TypedDict("GetUnionResponse", {"search": typing.List[GetUnion__search]})
 
 
-GetUnionInput__required = typing.TypedDict("GetUnionInput__required", {"text": str})
-GetUnionInput__not_required = typing.TypedDict("GetUnionInput__not_required", {}, total=False)
+_GetUnionInput__required = typing.TypedDict("_GetUnionInput__required", {"text": str})
+_GetUnionInput__not_required = typing.TypedDict("_GetUnionInput__not_required", {}, total=False)
 
 
-class GetUnionInput(GetUnionInput__required, GetUnionInput__not_required):
+class _GetUnionInput(_GetUnionInput__required, _GetUnionInput__not_required):
     pass
 
 
@@ -216,16 +214,15 @@ class GetUnion:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetUnionInput) -> GetUnionResponse:
+    def execute(cls, client: Client, variable_values: _GetUnionInput) -> GetUnionResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetUnionInput) -> GetUnionResponse:
+    def execute_async(cls, client: Client, variable_values: _GetUnionInput) -> typing.Awaitable[GetUnionResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
-Episode = typing.Literal["NEWHOPE", "EMPIRE", "JEDI"]
 
 
 GetRecursive__hero__Droid__friends__Droid__friends = typing.TypedDict("GetRecursive__hero__Droid__friends__Droid__friends", {"name": str})
@@ -267,11 +264,11 @@ GetRecursive__hero = typing.Union[__GetRecursive__hero, GetRecursive__hero__Huma
 GetRecursiveResponse = typing.TypedDict("GetRecursiveResponse", {"hero": GetRecursive__hero})
 
 
-GetRecursiveInput__required = typing.TypedDict("GetRecursiveInput__required", {"episode": Episode})
-GetRecursiveInput__not_required = typing.TypedDict("GetRecursiveInput__not_required", {}, total=False)
+_GetRecursiveInput__required = typing.TypedDict("_GetRecursiveInput__required", {"episode": Episode})
+_GetRecursiveInput__not_required = typing.TypedDict("_GetRecursiveInput__not_required", {}, total=False)
 
 
-class GetRecursiveInput(GetRecursiveInput__required, GetRecursiveInput__not_required):
+class _GetRecursiveInput(_GetRecursiveInput__required, _GetRecursiveInput__not_required):
     pass
 
 
@@ -307,12 +304,12 @@ class GetRecursive:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: GetRecursiveInput) -> GetRecursiveResponse:
+    def execute(cls, client: Client, variable_values: _GetRecursiveInput) -> GetRecursiveResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: GetRecursiveInput) -> GetRecursiveResponse:
+    def execute_async(cls, client: Client, variable_values: _GetRecursiveInput) -> typing.Awaitable[GetRecursiveResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
@@ -332,11 +329,11 @@ AddStarship__addStarship = typing.TypedDict("AddStarship__addStarship", {"id": s
 AddStarshipResponse = typing.TypedDict("AddStarshipResponse", {"addStarship": AddStarship__addStarship})
 
 
-AddStarshipInput__required = typing.TypedDict("AddStarshipInput__required", {"input": AddStarshipInput})
-AddStarshipInput__not_required = typing.TypedDict("AddStarshipInput__not_required", {}, total=False)
+_AddStarshipInput__required = typing.TypedDict("_AddStarshipInput__required", {"input": AddStarshipInput})
+_AddStarshipInput__not_required = typing.TypedDict("_AddStarshipInput__not_required", {}, total=False)
 
 
-class AddStarshipInput(AddStarshipInput__required, AddStarshipInput__not_required):
+class _AddStarshipInput(_AddStarshipInput__required, _AddStarshipInput__not_required):
     pass
 
 
@@ -349,12 +346,12 @@ class AddStarship:
         }
     ''')
     @classmethod
-    def execute(cls, client: Client, variable_values: AddStarshipInput) -> AddStarshipResponse:
+    def execute(cls, client: Client, variable_values: _AddStarshipInput) -> AddStarshipResponse:
         return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
         )
     @classmethod
-    def execute_async(cls, client: Client, variable_values: AddStarshipInput) -> AddStarshipResponse:
+    def execute_async(cls, client: Client, variable_values: _AddStarshipInput) -> typing.Awaitable[AddStarshipResponse]:
         return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )
@@ -366,11 +363,11 @@ AllHuman__allHuman = typing.TypedDict("AllHuman__allHuman", {"id": str, "name": 
 AllHumanResponse = typing.TypedDict("AllHumanResponse", {"allHuman": AllHuman__allHuman})
 
 
-AllHumanInput__required = typing.TypedDict("AllHumanInput__required", {})
-AllHumanInput__not_required = typing.TypedDict("AllHumanInput__not_required", {}, total=False)
+_AllHumanInput__required = typing.TypedDict("_AllHumanInput__required", {})
+_AllHumanInput__not_required = typing.TypedDict("_AllHumanInput__not_required", {}, total=False)
 
 
-class AllHumanInput(AllHumanInput__required, AllHumanInput__not_required):
+class _AllHumanInput(_AllHumanInput__required, _AllHumanInput__not_required):
     pass
 
 
@@ -383,10 +380,10 @@ class AllHuman:
         }
     ''')
     @classmethod
-    def subscribe(cls, client: Client, variable_values: AllHumanInput = {}) -> AllHumanResponse:
-        for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
-            yield r
+    def subscribe(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.Iterable[AllHumanResponse]:
+        for r in client.subscribe(cls._query, variable_values=variable_values):
+            yield r  # type: ignore
     @classmethod
-    async def subscribe_async(cls, client: Client, variable_values: AllHumanInput = {}) -> AllHumanResponse:
-        async for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
-            yield r
+    async def subscribe_async(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.AsyncIterable[AllHumanResponse]:
+        async for r in client.subscribe_async(cls._query, variable_values=variable_values):
+            yield r  # type: ignore

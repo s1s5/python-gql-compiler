@@ -92,18 +92,18 @@ assert result7 == {'addStarship': {'id': 's-3', 'name': 'HOGE'}}
 
 schema = client.schema
 
-transport = WebsocketsTransport(url='ws://localhost:8000')
-client = Client(transport=transport, schema=schema)  # fetch_schema_from_transportには対応していない
+async_transport = WebsocketsTransport(url='ws://localhost:8000')
+client = Client(transport=async_transport, schema=schema)  # fetch_schema_from_transportには対応していない
 result8 = [x for x in client_queries.AllHuman.subscribe(client)]
 assert result8 == [{'allHuman': {'id': 'h-1', 'name': 'luke'}}, {'allHuman': {'id': 'h-2', 'name': 'obi'}}]
 
 
 async def async_subscription_test():
     transport = WebsocketsTransport(url='ws://localhost:8000')
-    async with Client(transport=transport, schema=schema) as client:
-        r = []
-        async for x in client_queries.AllHuman.subscribe_async(client):
-            r.append(x)
-        assert r == [{'allHuman': {'id': 'h-1', 'name': 'luke'}}, {'allHuman': {'id': 'h-2', 'name': 'obi'}}]
+    client = Client(transport=transport, schema=schema)
+    result8 = [x async for x in client_queries.AllHuman.subscribe_async(client)]
+    assert result8 == (
+        [{'allHuman': {'id': 'h-1', 'name': 'luke'}}, {'allHuman': {'id': 'h-2', 'name': 'obi'}}])
+
 
 asyncio.run(async_subscription_test())
