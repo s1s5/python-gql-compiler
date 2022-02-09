@@ -1,6 +1,5 @@
 import os
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
+from typing import Dict, List, Set, Union
 from xmlrpc.client import boolean
 
 from graphql import (
@@ -15,7 +14,6 @@ from graphql import (
     OperationType,
     TypeNode,
 )
-from marshmallow.fields import Field as MarshmallowField
 
 from .types import ScalarConfig
 
@@ -87,15 +85,6 @@ class CodeChunk:
 
     def __str__(self):
         return os.linesep.join(self.lines)
-
-
-@dataclass
-class CustomScalar:
-    name: str
-    type: Type[Any]
-    encoder: Optional[Callable[..., Any]] = None
-    decoder: Optional[Callable[..., Any]] = None
-    mm_field: Optional[MarshmallowField] = None
 
 
 class Renderer:

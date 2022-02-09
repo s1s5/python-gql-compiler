@@ -168,12 +168,12 @@ class FieldToTypeMatcherVisitor(Visitor):
             for key, value in self.schema.type_map.items():
                 if not hasattr(value, "interfaces"):
                     continue
-                if type_.name in [x.name for x in value.interfaces]:  # type: ignore  <= ライブラリのバグ
+                if type_.name in [x.name for x in value.interfaces]:  # type: ignore
                     names.append(key)
             return set(names)
         elif isinstance(type_, GraphQLUnionType):
             names = [type_.name]
-            for t in type_.types:  # type: ignore  <= ライブラリのバグ
+            for t in type_.types:  # type: ignore
                 names.append(t.name)
             return set(names)
         raise Exception(f"Unexpected type {type_}")

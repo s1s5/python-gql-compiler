@@ -7,6 +7,45 @@
 - inline fragment
 - fragment not supported yet
 
+# Command
+
+``` shell
+usage: main.py [-h] [-s SCHEMA [SCHEMA ...]] [-q QUERY [QUERY ...]] [--config CONFIG]
+
+options:
+  -h, --help            show this help message and exit
+  -s SCHEMA [SCHEMA ...], --schema SCHEMA [SCHEMA ...]
+                        the graphql schemas storage path or url
+  -q QUERY [QUERY ...], --query QUERY [QUERY ...]
+                        path where query file or directory all queries files are stored
+  --config CONFIG       path where config yaml file
+```
+
+## config-file
+``` yaml
+output_path: "{dirname}/__generated__/{basename_without_ext}.py"
+scalar_map:
+  ID:
+    import: ""
+    value: "str"
+query_ext: "gql"
+```
+
+### output_path
+determine output file depends on source query file
+
+### scalar_map
+custom scalar type mapping
+
+``` yaml
+"<Custom Scalar name>":
+  import: "import <import path>"  # import file when use this type
+  value: "<scalar type in python code>"
+```
+
+### query_ext
+searched by this extension name
+
 # Usage
 ## create query graphql file
 

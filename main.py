@@ -35,7 +35,10 @@ DEFAULT_CONFIG: Config = {
 }
 
 
-def compile_schema_library(schema_filepaths: List[str]) -> GraphQLSchema:
+def compile_schema_library(schema_filepaths: Optional[List[str]]) -> GraphQLSchema:
+    if not schema_filepaths:
+        raise Exception("schema must be required")
+
     full_schema = ""
     for schema_filepath in schema_filepaths:
         if schema_filepath.startswith("http"):
@@ -53,7 +56,10 @@ def compile_schema_library(schema_filepaths: List[str]) -> GraphQLSchema:
     return build_ast_schema(parse(full_schema))
 
 
-def extract_query_files(queries: List[str], config: Config) -> List[str]:
+def extract_query_files(queries: Optional[List[str]], config: Config) -> List[str]:
+    if not queries:
+        raise Exception("query file must be required")
+
     results: Set[str] = set()
     for f_or_d in queries:
         if not os.path.exists(f_or_d):
@@ -84,11 +90,11 @@ def __entry_point():
     parser.add_argument(
         "-q",
         "--query",
-        help="path where query file or all queries files are stored",
+        help="path where query file or directory all queries files are stored",
         type=str,
         nargs="+",
     )
-    parser.add_argument("--config", help="path where config yaml file", type=str)
+    parser.add_argument("-c", "--config", help="path where config yaml file", type=str)
     args = parser.parse_args()
     schema = compile_schema_library(args.schema)
     config = load_config_file(args.config)

@@ -19,6 +19,7 @@ pyproject-flake8 = "^0.0.1-alpha.2"
 gql = {version = "3.0.0rc0", extras = ["all"]}
 strawberry-graphql = {extras = ["debug-server"], version = "^0.96.0"}
 types-PyYAML = "^6.0.4"
+types-requests = "^2.27.8"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

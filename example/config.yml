@@ -1,0 +1,6 @@
+output_path: "{dirname}/__generated__/{basename_without_ext}.py"
+scalar_map:
+  ID:
+    import: ""
+    value: "str"
+query_ext: "gql"
