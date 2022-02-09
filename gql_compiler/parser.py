@@ -158,7 +158,9 @@ class FieldToTypeMatcherVisitor(Visitor):
     #     self.parsed.used_fragments.append(node.name.value)
     #     return node
 
-    def get_available_typename(self, type_: Union[GraphQLObjectType, GraphQLInterfaceType]) -> Set[str]:
+    def get_available_typename(
+        self, type_: Union[GraphQLObjectType, GraphQLInterfaceType, GraphQLUnionType]
+    ) -> Set[str]:
         if isinstance(type_, GraphQLObjectType):
             return set([type_.name])
         elif isinstance(type_, GraphQLInterfaceType):
@@ -166,8 +168,13 @@ class FieldToTypeMatcherVisitor(Visitor):
             for key, value in self.schema.type_map.items():
                 if not hasattr(value, "interfaces"):
                     continue
-                if type_.name in [x.name for x in value.interfaces]:  # type: ignore
+                if type_.name in [x.name for x in value.interfaces]:  # type: ignore  <= ライブラリのバグ
                     names.append(key)
+            return set(names)
+        elif isinstance(type_, GraphQLUnionType):
+            names = [type_.name]
+            for t in type_.types:  # type: ignore  <= ライブラリのバグ
+                names.append(t.name)
             return set(names)
         raise Exception(f"Unexpected type {type_}")
 
@@ -180,7 +187,7 @@ class FieldToTypeMatcherVisitor(Visitor):
         field = ParsedField(node=node, name=name, type=type_info, interface=current)
         stripped_type_info = strip_output_type_attribute(type_info)
 
-        if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType)):
+        if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType, GraphQLUnionType)):
             type_name = "__".join([x.name for x in self.dfs_path] + [name])
             self.parsed.type_name_mapping[type_name] = self.get_available_typename(stripped_type_info)
             stripped_type_info.name = type_name
@@ -213,7 +220,7 @@ class FieldToTypeMatcherVisitor(Visitor):
 
         field = ParsedField(node=node, name=name, type=type_info)
 
-        if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType)):
+        if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType, GraphQLUnionType)):
             type_name = "__".join([x.name for x in self.dfs_path] + [name])
             self.parsed.type_name_mapping[type_name] = self.get_available_typename(stripped_type_info)
             stripped_type_info.name = type_name

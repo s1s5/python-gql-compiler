@@ -24,6 +24,7 @@ from .parser import (
     ParsedField,
     ParsedQuery,
     ParsedQueryVariable,
+    strip_output_type_attribute,
 )
 
 DEFAULT_MAPPING = {
@@ -216,7 +217,7 @@ class Renderer:
             }
         )
         if isinstance(parsed_field, ParsedField) and "__typename" in m:
-            name = parsed_field.type.name
+            name = strip_output_type_attribute(parsed_field.type).name
             types = [f'"{x}"' for x in parsed_query.type_name_mapping[name]]
             m["__typename"] = f"typing.Literal[{', '.join(types)}]"
         return m
@@ -237,7 +238,10 @@ class Renderer:
             if parsed_field.inline_fragments:
                 type_str = f'typing.TypedDict("__{name}", {"{"}{", ".join(r)}{"}"})'
                 buffer.write(f"__{name} = {type_str}")
-                types = [f"{parsed_field.type.name}__{x}" for x in parsed_field.inline_fragments]
+                types = [
+                    f"{strip_output_type_attribute(parsed_field.type).name}__{x}"
+                    for x in parsed_field.inline_fragments
+                ]
                 type_str = f"typing.Union[__{name}, {', '.join(types)}]"
         buffer.write(f"{name} = {type_str}")
 
@@ -251,9 +255,9 @@ class Renderer:
         elif isinstance(type_, GraphQLList):
             return f"typing.List[{self.type_to_string(type_.of_type)}]"  # type: ignore
         type_name = self.scalar_map.get(type_.name, {"import": "", "value": type_.name})
-        self.__extra_import.add(type_name['import'])
+        self.__extra_import.add(type_name["import"])
         if isnull:
-            return f"typing.Optional[{type_name}]"
+            return f"typing.Optional[{type_name['value']}]"
         return type_name["value"]
 
     def node_type_to_string(self, node: TypeNode, isnull: boolean = True) -> str:
@@ -263,7 +267,7 @@ class Renderer:
             return self.node_type_to_string(node.type, isnull=False)
         elif isinstance(node, NamedTypeNode):
             type_name = self.scalar_map.get(node.name.value, {"import": "", "value": node.name.value})
-            self.__extra_import.add(type_name['import'])
+            self.__extra_import.add(type_name["import"])
             if isnull:
                 return f"typing.Optional[{type_name['value']}]"
             return type_name["value"]

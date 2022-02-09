@@ -80,7 +80,7 @@ droid_map: typing.Dict[strawberry.ID, Droid] = {
         name="R2-D2",
         appears_in=[Episode.NEWHOPE, Episode.JEDI],
         friend_ids=[strawberry.ID("h-1"), strawberry.ID("d-1")],
-        primary_function="search",
+        primary_function="dig",
     ),
 }
 starship_map: typing.Dict[strawberry.ID, Starship] = {

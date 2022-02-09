@@ -1,3 +1,36 @@
 query GetScalar {
   hello
 }
+
+query GetObject($id: ID!) {
+  droid(id: $id) {
+    id name appearsIn primaryFunction
+  }
+}
+
+query GetInterface($e: Episode!) {
+  hero(episode: $e) {
+    id name
+  }
+}
+
+query GetInlineFragment($e: Episode!) {
+  hero(episode: $e) {
+    __typename id name
+    ... on Human { totalCredits }
+    ... on Droid { primaryFunction }
+  }
+}
+
+query GetCustomScalar {
+  today
+}
+
+query GetUnion($text: String!) {
+  search(text: $text) {
+    __typename
+    ... on Human { totalCredits }
+    ... on Droid { friends { name } }
+    ... on Starship { name }
+  }
+}
