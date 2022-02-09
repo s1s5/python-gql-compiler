@@ -1,15 +1,12 @@
-from ast import type_ignore
 from dataclasses import dataclass, field
 import copy
 from collections import OrderedDict
-from re import M
-from typing import Any, List, Mapping, Optional, Set, Union, cast, Dict, Tuple
+from typing import List, Optional, Set, Union, Dict, Tuple
 from xmlrpc.client import boolean
 
 from graphql import (
     GraphQLEnumType,
     GraphQLInputObjectType,
-    GraphQLIsTypeOfFn,
     GraphQLList,
     GraphQLNonNull,
     GraphQLObjectType,
@@ -23,16 +20,10 @@ from graphql import (
     TypeInfoVisitor,
     TypeNode,
     Visitor,
-    is_enum_type,
-    is_scalar_type,
-    parse,
-    validate,
     visit,
 )
-from graphql.language import ExecutableDefinitionNode, VariableDefinitionNode, SelectionSetNode, FieldNode
+from graphql.language import VariableDefinitionNode, FieldNode
 from graphql.type import GraphQLScalarType, GraphQLInterfaceType, GraphQLUnionType
-from graphql.validation.rules.no_unused_fragments import NoUnusedFragmentsRule
-from graphql.validation.specified_rules import specified_rules
 
 GraphQLOutputType = Union[
     GraphQLScalarType,
@@ -40,7 +31,7 @@ GraphQLOutputType = Union[
     GraphQLInterfaceType,
     GraphQLUnionType,
     GraphQLEnumType,
-    #    GraphQLWrappingType,
+    #    GraphQLWrappingType,  # <= このせいでtype errorになるので一旦除外
 ]
 
 
@@ -48,29 +39,10 @@ GraphQLOutputType = Union[
 class ParsedField:
     name: str
     type: GraphQLOutputType
-    # is_list: bool
-    # nullable: bool
-    # default_value: Any = None
     node: Union[FieldNode, InlineFragmentNode]
     fields: Dict[str, "ParsedField"] = field(default_factory=dict)
     inline_fragments: Dict[str, "ParsedField"] = field(default_factory=dict)
     interface: Optional["ParsedField"] = None
-
-
-# @dataclass
-# class ParsedEnum:
-#     name: str
-#     values: Mapping[str, Any]
-
-
-# @dataclass
-# class ParsedObject:
-#     name: str
-#     fields: List[ParsedField] = field(default_factory=list)
-#     parents: List[str] = field(default_factory=list)
-#     children: Dict[str, "ParsedObject"] = field(default_factory=dict)
-#     inputs: Dict[str, "ParsedObject"] = field(default_factory=dict)
-#     input_enums: List[ParsedEnum] = field(default_factory=list)
 
 
 def strip_output_type_attribute(type_info: GraphQLOutputType) -> GraphQLOutputType:
@@ -102,7 +74,7 @@ class ParsedQuery:
     query: OperationDefinitionNode
 
     name: str = field(default_factory=str)
-    variable_definitions: Tuple[VariableDefinitionNode] = field(default_factory=tuple)
+    variable_definitions: Tuple[VariableDefinitionNode, ...] = field(default_factory=tuple)
     fields: Dict[str, ParsedField] = field(default_factory=dict)
     type_map: Dict[str, ParsedField] = field(default_factory=OrderedDict)
 
@@ -154,11 +126,7 @@ class FieldToTypeMatcherVisitor(Visitor):
             )
             stripped_type = strip_type_node_attribute(variable.type)
             self.register_input_type_recursive(stripped_type.name.value)
-            # scalar_type = self.schema.type_map[stripped_type.name.value]
-            # if isinstance(scalar_type, GraphQLInputObjectType):
-            #     self.parsed.used_input_types[stripped_type.name.value] = scalar_type
 
-            # print(key, is_undefinedable)
             self.parsed.variable_map[key] = ParsedQueryVariable(
                 is_undefinedable=is_undefinedable, type_node=variable.type
             )
@@ -241,11 +209,9 @@ class FieldToTypeMatcherVisitor(Visitor):
         name = node.alias.value if node.alias else node.name.value
         type_info: GraphQLOutputType = copy.deepcopy(self.type_info.get_type())  # type: ignore
         assert type_info
-        # print("enter_field", name, node, node.name.value, type_info)
-        # print(node.alias, node.name.value, type_info, type(type_info))
+
         stripped_type_info = strip_output_type_attribute(type_info)
 
-        # self.register_new_type(name, type_info, node)
         field = ParsedField(node=node, name=name, type=type_info)
 
         if isinstance(stripped_type_info, (GraphQLObjectType, GraphQLInterfaceType)):
@@ -258,87 +224,11 @@ class FieldToTypeMatcherVisitor(Visitor):
 
         self.current.fields[name] = field
         self.push(field)
-
-        # import code
-        # code.interact(local=locals())
-        # name = node.alias.value if node.alias else node.name.value
-        # graphql_type = self.type_info.get_type()
-
-        # field, obj_type, parsed_enum = self.__parse_field(name, graphql_type)
-        # if parsed_enum is not None:
-        #     self.parsed.enums.append(parsed_enum)  # pylint:disable=no-member
-
-        # self.current.fields.append(field)
-
-        # if obj_type is not None:
-        #     obj = ParsedObject(name=str(obj_type))
-        #     self.current.children[name] = obj
-        #     self.push(obj)
-
         return node
 
     def leave_field(self, node: FieldNode, *_):
-        # print("leave field", node, node.name.value)
         self.pop()
         return node
-
-    # def __parse_field(self, name, graphql_type):
-    #     (
-    #         type_name,
-    #         is_list,
-    #         nullable,
-    #         underlying_graphql_type,
-    #     ) = self.__scalar_type_to_python(graphql_type)
-
-    #     parsed_field = ParsedField(name=name, type=type_name, is_list=is_list, nullable=nullable)
-    #     parsed_enum = None
-
-    #     if not is_scalar_type(underlying_graphql_type):
-    #         if is_enum_type(underlying_graphql_type):
-    #             enum_type = cast(GraphQLEnumType, self.schema.type_map[underlying_graphql_type.name])
-    #             parsed_enum = ParsedEnum(
-    #                 name=enum_type.name,
-    #                 values={name: value.value or name for name, value in enum_type.values.items()},
-    #             )
-    #         else:
-    #             return parsed_field, underlying_graphql_type, parsed_enum
-
-    #     return parsed_field, None, parsed_enum
-
-    # @staticmethod
-    # def __scalar_type_to_python(scalar):
-    #     nullable = True
-    #     is_list = False
-    #     if isinstance(scalar, GraphQLNonNull):
-    #         nullable = False
-    #         scalar = scalar.of_type
-
-    #     if isinstance(scalar, GraphQLList):
-    #         scalar = scalar.of_type
-    #         if isinstance(scalar, GraphQLNonNull):
-    #             scalar = scalar.of_type
-    #             nullable = False
-    #         is_list = True
-
-    #     return scalar.name, is_list, nullable, scalar
-
-    # @staticmethod
-    # def __variable_type_to_python(var_type: TypeNode):
-    #     nullable = True
-    #     is_list = False
-    #     if isinstance(var_type, NonNullTypeNode):
-    #         nullable = False
-    #         var_type = var_type.type
-    #     if isinstance(var_type, ListTypeNode):
-    #         is_list = True
-    #         var_type = var_type.type
-    #         if isinstance(var_type, NonNullTypeNode):
-    #             nullable = False
-    #             var_type = var_type.type
-    #     print(var_type)
-    #     print(dir(var_type))
-    #     name: str = var_type.name.value  # type: ignore
-    #     return name, nullable, is_list, var_type
 
 
 class InvalidQueryError(Exception):
@@ -355,18 +245,6 @@ class Parser:
     def parse(
         self, query: OperationDefinitionNode, full_fragments: str = "", should_validate: bool = True
     ) -> ParsedQuery:
-        # query_document_ast = parse("".join([full_fragments, query]))
-        # document_ast = parse(query)
-
-        # if should_validate:
-        #     errors = validate(
-        #         self.schema,
-        #         query,
-        #         [rule for rule in specified_rules if rule is not NoUnusedFragmentsRule],
-        #     )
-        #     if errors:
-        #         raise InvalidQueryError(errors)
-
         type_info = TypeInfo(self.schema)
         visitor = FieldToTypeMatcherVisitor(self.schema, type_info, query)
         visit(query, TypeInfoVisitor(type_info, visitor))
