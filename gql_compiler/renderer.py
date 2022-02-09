@@ -277,9 +277,9 @@ class Renderer:
         if all(x.is_undefinedable for x in query.variable_map.values()):
             default_variable_values = " = {}"
         method_name = f"execute{'_async' if async_ else ''}"
-        async_prefix = "async " if async_ else ""
+        # async_prefix = "async " if async_ else ""
         with buffer.write_block(
-            f"{async_prefix}def {method_name}(cls, client: Client, "
+            f"def {method_name}(cls, client: Client, "
             f"variable_values: {query.name}Input{default_variable_values})"
             f" -> {query.name}Response:"
         ):
