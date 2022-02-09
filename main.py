@@ -1,19 +1,18 @@
 import argparse
 import glob
+import json
 import os
 from typing import List, Optional, Set
-import json
 
-import yaml
-from graphql import GraphQLSchema, build_ast_schema, get_introspection_query
-from graphql.utilities.print_schema import print_schema
-from graphql.language.parser import parse
-from gql.utilities import build_client_schema
 import requests
+import yaml
+from gql.utilities import build_client_schema
+from graphql import GraphQLSchema, build_ast_schema, get_introspection_query
+from graphql.language.parser import parse
+from graphql.utilities.print_schema import print_schema
 
 from gql_compiler import cli
 from gql_compiler.types import Config
-
 
 DEFAULT_CONFIG: Config = {
     "output_path": "{dirname}/{basename_without_ext}.py",

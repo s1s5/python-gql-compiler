@@ -1,4 +1,3 @@
-import enum
 import os
 from typing import Dict, List, Set, Union
 from xmlrpc.client import boolean
@@ -16,8 +15,6 @@ from graphql import (
     TypeNode,
 )
 
-from .types import ScalarConfig
-
 from .parser import (
     GraphQLOutputType,
     ParsedField,
@@ -25,6 +22,7 @@ from .parser import (
     ParsedQueryVariable,
     strip_output_type_attribute,
 )
+from .types import ScalarConfig
 
 DEFAULT_MAPPING = {
     "ID": "str",
@@ -196,7 +194,8 @@ class Renderer:
         buffer.write("")
         buffer.write(f'{name}__required = typing.TypedDict("{name}__required", {"{"}{", ".join(r)}{"}"})')
         buffer.write(
-            f'{name}__not_required = typing.TypedDict("{name}__not_required", {"{"}{", ".join(nr)}{"}"}, total=False)'
+            f'{name}__not_required = typing.TypedDict("{name}__not_required", '
+            f'{"{"}{", ".join(nr)}{"}"}, total=False)'
         )
         buffer.write("")
         buffer.write("")
@@ -287,7 +286,8 @@ class Renderer:
         buffer.write("")
         buffer.write(f'{name}__required = typing.TypedDict("{name}__required", {"{"}{", ".join(r)}{"}"})')
         buffer.write(
-            f'{name}__not_required = typing.TypedDict("{name}__not_required", {"{"}{", ".join(nr)}{"}"}, total=False)'
+            f'{name}__not_required = typing.TypedDict("{name}__not_required", '
+            f'{"{"}{", ".join(nr)}{"}"}, total=False)'
         )
         buffer.write("")
         buffer.write("")
@@ -348,7 +348,7 @@ class Renderer:
                 f"{async_prefix}for r in client.{method_name}("
                 "cls._query, variable_values=variable_values):"
             ):
-                buffer.write(f"yield r  # type: ignore")
+                buffer.write("yield r  # type: ignore")
 
     @staticmethod
     def __write_file_header(buffer: CodeChunk) -> None:

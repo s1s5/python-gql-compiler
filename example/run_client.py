@@ -1,13 +1,11 @@
 import asyncio
 import datetime
 
+import client_queries
+import custom_scalars
 from gql import Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
-
-import client_queries
-import custom_scalars
-
 
 transport = AIOHTTPTransport(url="http://localhost:8000")
 client = Client(transport=transport, fetch_schema_from_transport=True, parse_results=True)

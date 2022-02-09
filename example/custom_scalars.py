@@ -1,8 +1,9 @@
 import datetime
 from typing import Any, Dict, Optional
-from graphql.utilities import value_from_ast_untyped
-from graphql import GraphQLScalarType, ValueNode
+
 from gql.utilities import update_schema_scalar
+from graphql import GraphQLScalarType, ValueNode
+from graphql.utilities import value_from_ast_untyped
 
 
 def serialize_date(value: Any) -> str:

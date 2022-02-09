@@ -2,10 +2,10 @@
 # flake8: noqa
 # fmt: off
 
-import typing
-from gql import gql, Client
 import datetime
+import typing
 
+from gql import Client, gql
 
 GetScalarResponse = typing.TypedDict("GetScalarResponse", {"hello": str})
 

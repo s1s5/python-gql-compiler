@@ -1,6 +1,5 @@
 from typing import Dict, TypedDict
 
-
 ScalarConfig = TypedDict("ScalarConfig", {"import": str, "value": str})
 
 

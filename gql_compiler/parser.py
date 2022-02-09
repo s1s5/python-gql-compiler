@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
 import copy
 from collections import OrderedDict
-from typing import List, Optional, Set, Union, Dict
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Set, Union
 from xmlrpc.client import boolean
 
 from graphql import (
@@ -22,8 +22,8 @@ from graphql import (
     Visitor,
     visit,
 )
-from graphql.language import VariableDefinitionNode, FieldNode
-from graphql.type import GraphQLScalarType, GraphQLInterfaceType, GraphQLUnionType
+from graphql.language import FieldNode, VariableDefinitionNode
+from graphql.type import GraphQLInterfaceType, GraphQLScalarType, GraphQLUnionType
 
 GraphQLOutputType = Union[
     GraphQLScalarType,
