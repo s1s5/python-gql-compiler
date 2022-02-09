@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import copy
 from collections import OrderedDict
-from typing import List, Optional, Set, Union, Dict, Tuple
+from typing import List, Optional, Set, Union, Dict
 from xmlrpc.client import boolean
 
 from graphql import (
@@ -74,7 +74,7 @@ class ParsedQuery:
     query: OperationDefinitionNode
 
     name: str = field(default_factory=str)
-    variable_definitions: Tuple[VariableDefinitionNode, ...] = field(default_factory=tuple)
+    variable_definitions: List[VariableDefinitionNode] = field(default_factory=list)
     fields: Dict[str, ParsedField] = field(default_factory=dict)
     type_map: Dict[str, ParsedField] = field(default_factory=OrderedDict)
 
@@ -118,7 +118,7 @@ class FieldToTypeMatcherVisitor(Visitor):
 
     # Document
     def enter_operation_definition(self, node: OperationDefinitionNode, *_):
-        self.parsed.variable_definitions = node.variable_definitions
+        self.parsed.variable_definitions = list(node.variable_definitions)
         for variable in node.variable_definitions:
             key = variable.variable.name.value
             is_undefinedable = bool(variable.default_value) or (
@@ -172,7 +172,6 @@ class FieldToTypeMatcherVisitor(Visitor):
         raise Exception(f"Unexpected type {type_}")
 
     def enter_inline_fragment(self, node: InlineFragmentNode, *_):
-        print("enter_inline_fragment")
         name = node.type_condition.name.value
         type_info: GraphQLOutputType = copy.deepcopy(self.type_info.get_type())  # type: ignore
         current = self.current

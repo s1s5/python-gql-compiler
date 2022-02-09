@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 from xmlrpc.client import boolean
 
 from graphql import (
@@ -16,6 +16,8 @@ from graphql import (
     TypeNode,
 )
 from marshmallow.fields import Field as MarshmallowField
+
+from .types import ScalarConfig
 
 from .parser import (
     GraphQLOutputType,
@@ -76,6 +78,12 @@ class CodeChunk:
         self.write(block_header)
         return self.block()
 
+    def tell(self):
+        return len(self.lines)
+
+    def insert(self, pos: int, lines: List[str]):
+        self.lines = self.lines[:pos] + lines + self.lines[pos:]
+
     def __str__(self):
         return os.linesep.join(self.lines)
 
@@ -91,18 +99,34 @@ class CustomScalar:
 
 class Renderer:
     def __init__(
-        self, schema: GraphQLSchema, custom_scalars: Dict[str, str] = {}, extra_import: str = ""
+        self, schema: GraphQLSchema, scalar_map: Dict[str, ScalarConfig] = {}, extra_import: str = ""
     ) -> None:
         self.schema = schema
-        self.scalar_map = {
-            "ID": "str",
-            "Int": "int",
-            "Float": "float",
-            "Boolean": "bool",
-            "String": "str",
+        self.scalar_map: Dict[str, ScalarConfig] = {
+            "ID": {
+                "import": "",
+                "value": "str",
+            },
+            "Int": {
+                "import": "",
+                "value": "int",
+            },
+            "Float": {
+                "import": "",
+                "value": "float",
+            },
+            "Boolean": {
+                "import": "",
+                "value": "bool",
+            },
+            "String": {
+                "import": "",
+                "value": "str",
+            },
         }
-        self.scalar_map.update(custom_scalars)
+        self.scalar_map.update(scalar_map)
         self.extra_import = extra_import
+        self.__extra_import: Set[str] = set()
 
     def render(
         self,
@@ -114,6 +138,8 @@ class Renderer:
         buffer.write("from gql import gql, Client")
         if self.extra_import:
             buffer.write(self.extra_import)
+        import_pos = buffer.tell()
+        self.__extra_import.clear()
 
         for query in parsed_query_list:
             for enum_name, enum_type in query.used_enums.items():
@@ -141,6 +167,8 @@ class Renderer:
                 else:
                     self.write_subscribe_method(buffer, query, async_=True)
                     self.write_subscribe_method(buffer, query, async_=True)
+
+        buffer.insert(import_pos, [x for x in sorted(self.__extra_import) if x])
         return str(buffer)
 
     def get_query_body(self, query: ParsedQuery) -> str:
@@ -189,7 +217,6 @@ class Renderer:
         )
         if isinstance(parsed_field, ParsedField) and "__typename" in m:
             name = parsed_field.type.name
-            print(parsed_field, parsed_field.type.name)
             types = [f'"{x}"' for x in parsed_query.type_name_mapping[name]]
             m["__typename"] = f"typing.Literal[{', '.join(types)}]"
         return m
@@ -223,10 +250,11 @@ class Renderer:
             return self.type_to_string(type_.of_type, isnull=False)  # type: ignore
         elif isinstance(type_, GraphQLList):
             return f"typing.List[{self.type_to_string(type_.of_type)}]"  # type: ignore
-        type_name = self.scalar_map.get(type_.name, type_.name)
+        type_name = self.scalar_map.get(type_.name, {"import": "", "value": type_.name})
+        self.__extra_import.add(type_name['import'])
         if isnull:
             return f"typing.Optional[{type_name}]"
-        return type_name
+        return type_name["value"]
 
     def node_type_to_string(self, node: TypeNode, isnull: boolean = True) -> str:
         if isinstance(node, ListTypeNode):
@@ -234,10 +262,11 @@ class Renderer:
         elif isinstance(node, NonNullTypeNode):
             return self.node_type_to_string(node.type, isnull=False)
         elif isinstance(node, NamedTypeNode):
-            type_name = self.scalar_map.get(node.name.value, node.name.value)
+            type_name = self.scalar_map.get(node.name.value, {"import": "", "value": node.name.value})
+            self.__extra_import.add(type_name['import'])
             if isnull:
-                return f"typing.Optional[{type_name}]"
-            return type_name
+                return f"typing.Optional[{type_name['value']}]"
+            return type_name["value"]
         raise Exception("Unknown type node")
 
     def render_input_type(self, buffer: CodeChunk, name: str, variable_map: Dict[str, ParsedQueryVariable]):

@@ -1,7 +1,7 @@
 import glob
 import os
-from typing import Dict, List, Optional
 from collections import defaultdict
+from typing import Dict, List
 
 from graphql import GraphQLSchema, validate
 from graphql.language import FragmentDefinitionNode, OperationDefinitionNode
@@ -11,16 +11,17 @@ from graphql.validation.specified_rules import specified_rules
 
 from .parser import Parser
 from .renderer import Renderer
+from .types import Config
 
 
 def run(
     schema: GraphQLSchema,
     queries_dir: str,
     graphql_file: List[str],
-    config_path: Optional[str] = None,
+    config: Config,
 ) -> None:
     query_parser = Parser(schema)
-    query_renderer = Renderer(schema)
+    query_renderer = Renderer(schema, scalar_map=config["scalar_map"])
     if queries_dir:
         graphql_file = graphql_file + list(
             glob.glob(os.path.join(queries_dir, "**/*.graphql"), recursive=True)
@@ -45,8 +46,13 @@ def run(
 
     for filename, definition_list in operation_library.items():
         parsed_list = [query_parser.parse(definition) for definition in definition_list]
-        print(query_renderer.render(parsed_list))
 
-        import code
-
-        code.interact(local=locals())
+        dirname = os.path.dirname(filename)
+        basename = os.path.basename(filename)
+        basename_without_ext, ext = os.path.splitext(basename)
+        dst_path = config["output_path"].format(
+            dirname=dirname, basename=basename, basename_without_ext=basename_without_ext, ext=ext
+        )
+        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+        with open(dst_path, 'w') as fp:
+            print(query_renderer.render(parsed_list), file=fp)
