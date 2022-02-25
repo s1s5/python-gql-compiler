@@ -7,35 +7,35 @@ import typing
 from gql import gql, Client
 
 
-AllHuman__allHuman = typing.TypedDict("AllHuman__allHuman", {"id": str, "name": str})
+AllHumanSubsc__allHuman = typing.TypedDict("AllHumanSubsc__allHuman", {"id": str, "name": str})
 
 
-AllHumanResponse = typing.TypedDict("AllHumanResponse", {"allHuman": AllHuman__allHuman})
+AllHumanSubscResponse = typing.TypedDict("AllHumanSubscResponse", {"allHuman": AllHumanSubsc__allHuman})
 
 
-_AllHumanInput__required = typing.TypedDict("_AllHumanInput__required", {})
-_AllHumanInput__not_required = typing.TypedDict("_AllHumanInput__not_required", {}, total=False)
+_AllHumanSubscInput__required = typing.TypedDict("_AllHumanSubscInput__required", {})
+_AllHumanSubscInput__not_required = typing.TypedDict("_AllHumanSubscInput__not_required", {}, total=False)
 
 
-class _AllHumanInput(_AllHumanInput__required, _AllHumanInput__not_required):
+class _AllHumanSubscInput(_AllHumanSubscInput__required, _AllHumanSubscInput__not_required):
     pass
 
 
-class AllHuman:
-    Response = AllHumanResponse
-    Input = _AllHumanInput
+class AllHumanSubsc:
+    Response = AllHumanSubscResponse
+    Input = _AllHumanSubscInput
     _query = gql('''
-        subscription AllHuman {
+        subscription AllHumanSubsc {
           allHuman {
             id name
           }
         }
     ''')
     @classmethod
-    def subscribe(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.Iterable[AllHumanResponse]:
+    def subscribe(cls, client: Client, variable_values: _AllHumanSubscInput = {}) -> typing.Iterable[AllHumanSubscResponse]:
         for r in client.subscribe(cls._query, variable_values=variable_values):
             yield r  # type: ignore
     @classmethod
-    async def subscribe_async(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.AsyncIterable[AllHumanResponse]:
+    async def subscribe_async(cls, client: Client, variable_values: _AllHumanSubscInput = {}) -> typing.AsyncIterable[AllHumanSubscResponse]:
         async for r in client.subscribe_async(cls._query, variable_values=variable_values):
             yield r  # type: ignore

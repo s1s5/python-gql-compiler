@@ -18,41 +18,41 @@ def rewrite_typename(value: typing.Any):
 
 
 @dataclass
-class AllHuman__allHuman:
+class AllHumanSubsc__allHuman:
     id: str
     name: str
 
 
 @dataclass
-class AllHumanResponse:
-    allHuman: AllHuman__allHuman
+class AllHumanSubscResponse:
+    allHuman: AllHumanSubsc__allHuman
     def __init__(self, allHuman):
-        self.allHuman = AllHuman__allHuman(**rewrite_typename(allHuman))
+        self.allHuman = AllHumanSubsc__allHuman(**rewrite_typename(allHuman))
 
 
-_AllHumanInput__required = typing.TypedDict("_AllHumanInput__required", {})
-_AllHumanInput__not_required = typing.TypedDict("_AllHumanInput__not_required", {}, total=False)
+_AllHumanSubscInput__required = typing.TypedDict("_AllHumanSubscInput__required", {})
+_AllHumanSubscInput__not_required = typing.TypedDict("_AllHumanSubscInput__not_required", {}, total=False)
 
 
-class _AllHumanInput(_AllHumanInput__required, _AllHumanInput__not_required):
+class _AllHumanSubscInput(_AllHumanSubscInput__required, _AllHumanSubscInput__not_required):
     pass
 
 
-class AllHuman:
-    Response = AllHumanResponse
-    Input = _AllHumanInput
+class AllHumanSubsc:
+    Response = AllHumanSubscResponse
+    Input = _AllHumanSubscInput
     _query = gql('''
-        subscription AllHuman {
+        subscription AllHumanSubsc {
           allHuman {
             id name
           }
         }
     ''')
     @classmethod
-    def subscribe(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.Iterable[AllHumanResponse]:
+    def subscribe(cls, client: Client, variable_values: _AllHumanSubscInput = {}) -> typing.Iterable[AllHumanSubscResponse]:
         for r in client.subscribe(cls._query, variable_values=variable_values):
             yield cls.Response(**rewrite_typename(r))  # type: ignore
     @classmethod
-    async def subscribe_async(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.AsyncIterable[AllHumanResponse]:
+    async def subscribe_async(cls, client: Client, variable_values: _AllHumanSubscInput = {}) -> typing.AsyncIterable[AllHumanSubscResponse]:
         async for r in client.subscribe_async(cls._query, variable_values=variable_values):
             yield cls.Response(**rewrite_typename(r))  # type: ignore
