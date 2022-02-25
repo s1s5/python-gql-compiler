@@ -20,8 +20,8 @@ class _GetCustomScalarInput(_GetCustomScalarInput__required, _GetCustomScalarInp
 
 
 class GetCustomScalar:
-    Response = GetCustomScalarResponse
-    Input = _GetCustomScalarInput
+    Response: typing.TypeAlias = GetCustomScalarResponse
+    Input: typing.TypeAlias = _GetCustomScalarInput
     _query = gql('''
         query GetCustomScalar {
           today

@@ -56,8 +56,8 @@ class _GetRecursiveInput(_GetRecursiveInput__required, _GetRecursiveInput__not_r
 
 
 class GetRecursive:
-    Response = GetRecursiveResponse
-    Input = _GetRecursiveInput
+    Response: typing.TypeAlias = GetRecursiveResponse
+    Input: typing.TypeAlias = _GetRecursiveInput
     _query = gql('''
         query GetRecursive($episode: Episode!) {
           hero(episode: $episode) {

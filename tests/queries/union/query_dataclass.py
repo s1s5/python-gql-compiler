@@ -69,8 +69,8 @@ class _GetUnionInput(_GetUnionInput__required, _GetUnionInput__not_required):
 
 
 class GetUnion:
-    Response = GetUnionResponse
-    Input = _GetUnionInput
+    Response: typing.TypeAlias = GetUnionResponse
+    Input: typing.TypeAlias = _GetUnionInput
     _query = gql('''
         query GetUnion($text: String!) {
           search(text: $text) {

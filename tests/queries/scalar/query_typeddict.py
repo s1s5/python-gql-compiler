@@ -19,8 +19,8 @@ class _GetScalarInput(_GetScalarInput__required, _GetScalarInput__not_required):
 
 
 class GetScalar:
-    Response = GetScalarResponse
-    Input = _GetScalarInput
+    Response: typing.TypeAlias = GetScalarResponse
+    Input: typing.TypeAlias = _GetScalarInput
     _query = gql('''
         query GetScalar {
           hello

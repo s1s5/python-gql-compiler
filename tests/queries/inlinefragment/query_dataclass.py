@@ -61,8 +61,8 @@ class _GetInlineFragmentInput(_GetInlineFragmentInput__required, _GetInlineFragm
 
 
 class GetInlineFragment:
-    Response = GetInlineFragmentResponse
-    Input = _GetInlineFragmentInput
+    Response: typing.TypeAlias = GetInlineFragmentResponse
+    Input: typing.TypeAlias = _GetInlineFragmentInput
     _query = gql('''
         query GetInlineFragment($e: Episode!) {
           hero(episode: $e) {

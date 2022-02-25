@@ -39,8 +39,8 @@ class _AllHumanSubscInput(_AllHumanSubscInput__required, _AllHumanSubscInput__no
 
 
 class AllHumanSubsc:
-    Response = AllHumanSubscResponse
-    Input = _AllHumanSubscInput
+    Response: typing.TypeAlias = AllHumanSubscResponse
+    Input: typing.TypeAlias = _AllHumanSubscInput
     _query = gql('''
         subscription AllHumanSubsc {
           allHuman {

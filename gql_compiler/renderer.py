@@ -207,8 +207,8 @@ class Renderer:
             buffer.write("")
             buffer.write("")
             with buffer.write_block(f"class {query.name}:"):
-                buffer.write(f"Response = {query.name}Response")
-                buffer.write(f"Input = _{query.name}Input")
+                buffer.write(f"Response: typing.TypeAlias = {query.name}Response")
+                buffer.write(f"Input: typing.TypeAlias = _{query.name}Input")
                 with buffer.write_block("_query = gql('''"):
                     buffer.write_lines(self.get_query_body(query).splitlines())
                 buffer.write("''')")

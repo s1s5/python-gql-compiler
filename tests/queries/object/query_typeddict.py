@@ -23,8 +23,8 @@ class _GetObjectInput(_GetObjectInput__required, _GetObjectInput__not_required):
 
 
 class GetObject:
-    Response = GetObjectResponse
-    Input = _GetObjectInput
+    Response: typing.TypeAlias = GetObjectResponse
+    Input: typing.TypeAlias = _GetObjectInput
     _query = gql('''
         query GetObject($id: ID!) {
           droid(id: $id) {

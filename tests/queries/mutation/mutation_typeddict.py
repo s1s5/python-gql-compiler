@@ -30,8 +30,8 @@ class _AddStarshipInput(_AddStarshipInput__required, _AddStarshipInput__not_requ
 
 
 class AddStarship:
-    Response = AddStarshipResponse
-    Input = _AddStarshipInput
+    Response: typing.TypeAlias = AddStarshipResponse
+    Input: typing.TypeAlias = _AddStarshipInput
     _query = gql('''
         mutation AddStarship($input: AddStarshipInput!) {
           addStarship(input: $input) {
