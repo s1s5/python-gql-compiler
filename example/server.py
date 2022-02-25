@@ -19,7 +19,14 @@ class Character:
     name: str
     appears_in: typing.List[Episode]
 
+    best_friend_id: strawberry.Private[typing.Optional[strawberry.ID]]
     friend_ids: strawberry.Private[typing.List[strawberry.ID]]
+
+    @strawberry.field
+    def best_friend(self) -> typing.Optional["Character"]:
+        if self.best_friend_id:
+            return character_map.get(self.best_friend_id, None)
+        return None
 
     @strawberry.field
     def friends(self) -> typing.Optional[typing.List[typing.Optional["Character"]]]:
@@ -55,6 +62,7 @@ human_map: typing.Dict[strawberry.ID, Human] = {
         id=strawberry.ID("h-1"),
         name="luke",
         appears_in=[Episode.NEWHOPE, Episode.EMPIRE],
+        best_friend_id=strawberry.ID("d-2"),
         friend_ids=[strawberry.ID("h-2"), strawberry.ID("d-2")],
         starship_ids=[strawberry.ID("s-2")],
         total_credits=3,
@@ -63,6 +71,7 @@ human_map: typing.Dict[strawberry.ID, Human] = {
         id=strawberry.ID("h-2"),
         name="obi",
         appears_in=[Episode.NEWHOPE, Episode.EMPIRE, Episode.JEDI],
+        best_friend_id=None,
         friend_ids=[strawberry.ID("h-1")],
         starship_ids=[strawberry.ID("s-1")],
         total_credits=3,
@@ -73,12 +82,14 @@ droid_map: typing.Dict[strawberry.ID, Droid] = {
         id=strawberry.ID("d-1"),
         name="C-3PO",
         appears_in=[Episode.NEWHOPE],
+        best_friend_id=None,
         friend_ids=[strawberry.ID("h-2"), strawberry.ID("d-2")],
         primary_function="search",
     ),
     strawberry.ID("d-2"): Droid(
         id=strawberry.ID("d-2"),
         name="R2-D2",
+        best_friend_id=strawberry.ID("h-1"),
         appears_in=[Episode.NEWHOPE, Episode.JEDI],
         friend_ids=[strawberry.ID("h-1"), strawberry.ID("d-1")],
         primary_function="dig",
