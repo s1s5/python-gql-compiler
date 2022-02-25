@@ -1,0 +1,5 @@
+query GetObject($id: ID!) {
+  droid(id: $id) {
+    id name appearsIn primaryFunction
+  }
+}

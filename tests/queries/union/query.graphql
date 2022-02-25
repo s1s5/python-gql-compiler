@@ -1,0 +1,8 @@
+query GetUnion($text: String!) {
+  search(text: $text) {
+    __typename
+    ... on Human { totalCredits }
+    ... on Droid { friends { name } }
+    ... on Starship { name }
+  }
+}

@@ -1,0 +1,7 @@
+query GetInlineFragment($e: Episode!) {
+  hero(episode: $e) {
+    __typename id name
+    ... on Human { totalCredits }
+    ... on Droid { primaryFunction }
+  }
+}
