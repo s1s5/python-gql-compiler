@@ -15,8 +15,8 @@ repos:
         args: [--allow-missing-credentials]
       - id: detect-private-key
       - id: end-of-file-fixer
-      - id: name-tests-test
-        args: [--django]
+      # - id: name-tests-test
+      #   args: [--django]
       - id: pretty-format-json
         args: [--autofix]
 
@@ -29,12 +29,23 @@ repos:
           - pyproject-flake8
           - radon
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.931'
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: 'v0.931'
+  #   hooks:
+  #     - id: mypy
+  #       args:
+  #         - --ignore-missing-imports
+  #       additional_dependencies:
+  #         - strawberry-graphql
+  - repo: local
     hooks:
       - id: mypy
-        additional_dependencies:
-          - strawberry-graphql
+        language: system
+        name: check py typing
+        entry: mypy .
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
 
   - repo: https://github.com/psf/black
     rev: '21.12b0'
@@ -51,3 +62,33 @@ repos:
           - --check-only
         additional_dependencies:
           - toml
+
+  - repo: local
+    hooks:
+      - id: test-schema
+        language: system
+        name: output test schema
+        entry: sh -c "python -m strawberry export-schema tests.graphql_server:schema > tests/schema.graphql"
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: test-dataclass-query
+        language: system
+        name: output dataclass query
+        entry: python main.py -s ./tests/schema.graphql -q ./tests/queries/ -c ./tests/dataclass-conf.yml
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: test-typeddict-query
+        language: system
+        name: output typeddict query
+        entry: python main.py -s ./tests/schema.graphql -q ./tests/queries/ -c ./tests/typeddict-conf.yml
+        pass_filenames: false
+        always_run: true
+        stages: [commit]

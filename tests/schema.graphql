@@ -1,0 +1,64 @@
+input AddStarshipInput {
+  name: String!
+}
+
+interface Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode!]!
+  bestFriend: Character
+  friends: [Character]
+}
+
+"""Date (isoformat)"""
+scalar Date
+
+type Droid implements Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode!]!
+  bestFriend: Character
+  friends: [Character]
+  primaryFunction: String!
+}
+
+enum Episode {
+  NEWHOPE
+  EMPIRE
+  JEDI
+}
+
+type Human implements Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode!]!
+  bestFriend: Character
+  friends: [Character]
+  totalCredits: Int!
+  starshipIds: [ID!]!
+  starships: [Starship]
+}
+
+type Mutation {
+  addStarship(input: AddStarshipInput!): Starship!
+}
+
+type Query {
+  hello: String!
+  today: Date!
+  hero(episode: Episode!): Character!
+  droid(id: ID!): Droid!
+  search(text: String!): [SearchResult!]!
+}
+
+union SearchResult = Human | Droid | Starship
+
+type Starship {
+  id: ID!
+  name: String!
+}
+
+type Subscription {
+  count(target: Int! = 10): Int!
+  allHuman(waitSec: Float! = 0.1): Human!
+}

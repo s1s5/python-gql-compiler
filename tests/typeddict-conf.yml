@@ -1,0 +1,2 @@
+output_path: "{dirname}/{basename_without_ext}_typeddict.py"
+output_type: typeddict

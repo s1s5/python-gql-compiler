@@ -114,7 +114,11 @@ class InlineFragmentAssignConverter:
 
 class Renderer:
     def __init__(
-        self, schema: GraphQLSchema, scalar_map: Dict[str, ScalarConfig] = {}, extra_import: str = ""
+        self,
+        schema: GraphQLSchema,
+        scalar_map: Dict[str, ScalarConfig] = {},
+        extra_import: str = "",
+        render_as_typed_dict=False,
     ) -> None:
         self.schema = schema
         self.scalar_map: Dict[str, ScalarConfig] = {
@@ -142,7 +146,7 @@ class Renderer:
         self.scalar_map.update(scalar_map)
         self.extra_import = extra_import
         self.__extra_import: Set[str] = set()
-        self.render_as_typed_dict = False
+        self.render_as_typed_dict = render_as_typed_dict
 
     def render(
         self,

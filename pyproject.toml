@@ -43,3 +43,4 @@ extend-ignore = "E203,"  # blackと競合してる
 [tool.mypy]
 plugins = ["strawberry.ext.mypy_plugin"]
 namespace_packages = true
+ignore_missing_imports = true  # スタブがないライブラリを無視する

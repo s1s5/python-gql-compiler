@@ -31,6 +31,7 @@ DEFAULT_CONFIG: Config = {
         },
     },
     "query_ext": "graphql",
+    "output_type": "dataclass",
 }
 
 
@@ -93,7 +94,15 @@ def __entry_point():
         type=str,
         nargs="+",
     )
+    parser.add_argument(
+        "-t",
+        "--output-type",
+        help="output_type 'dataclass' or 'TypedDict'",
+        choices=["dataclass", "typeddict"],
+        default=None,
+    )
     parser.add_argument("-c", "--config", help="path where config yaml file", type=str)
+
     args = parser.parse_args()
     schema = compile_schema_library(args.schema)
     config = load_config_file(args.config)

@@ -19,7 +19,9 @@ def run(
     config: Config,
 ) -> None:
     query_parser = Parser(schema)
-    query_renderer = Renderer(schema, scalar_map=config["scalar_map"])
+    query_renderer = Renderer(
+        schema, scalar_map=config["scalar_map"], render_as_typed_dict=config["output_type"] == "typeddict"
+    )
 
     operation_library: Dict[str, List[OperationDefinitionNode]] = defaultdict(list)
     fragment_library: Dict[str, List[FragmentDefinitionNode]] = defaultdict(list)
