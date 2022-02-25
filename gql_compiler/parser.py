@@ -233,6 +233,9 @@ class FieldToTypeMatcherVisitor(Visitor):
         return node
 
     def leave_field(self, node: FieldNode, *_):
+        if isinstance(self.current, ParsedField):
+            if self.current.inline_fragments and "__typename" not in self.current.fields:
+                raise Exception("must add field '__typename' in inline fragment")
         self.pop()
         return node
 
