@@ -33,6 +33,8 @@ repos:
     rev: 'v0.931'
     hooks:
       - id: mypy
+        additional_dependencies:
+          - strawberry-graphql
 
   - repo: https://github.com/psf/black
     rev: '21.12b0'
