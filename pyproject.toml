@@ -21,6 +21,7 @@ gql = {version = "3.0.0rc0", extras = ["all"]}
 strawberry-graphql = {extras = ["debug-server"], version = "^0.96.0"}
 types-PyYAML = "^6.0.4"
 types-requests = "^2.27.8"
+pre-commit = "^2.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
