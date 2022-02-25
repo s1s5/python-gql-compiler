@@ -23,6 +23,8 @@ WORKDIR /app
 copy main.py ./
 copy gql_compiler ./gql_compiler
 
+WORKDIR /work
+
 USER app
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "/app/main.py"]
