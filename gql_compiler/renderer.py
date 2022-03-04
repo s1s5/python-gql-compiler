@@ -468,9 +468,11 @@ class Renderer:
         method_name = f"execute{'_async' if async_ else ''}"
 
         response_type = f"{query.name}Response"
-        if async_:
-            response_type = f"typing.Awaitable[{response_type}]"
         async_prefix = "async " if ((not self.render_as_typed_dict) and async_) else ""
+
+        if async_ and (not async_prefix):
+            response_type = f"typing.Awaitable[{response_type}]"
+
         with buffer.write_block(
             f"{async_prefix}def {method_name}(cls, client: Client, "
             f"variable_values: _{query.name}Input{default_variable_values})"

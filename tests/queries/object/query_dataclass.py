@@ -57,7 +57,7 @@ class GetObject:
             cls._query, variable_values=variable_values
         )))
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetObjectInput) -> typing.Awaitable[GetObjectResponse]:
+    async def execute_async(cls, client: Client, variable_values: _GetObjectInput) -> GetObjectResponse:
         return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )))

@@ -87,7 +87,7 @@ class GetUnion:
             cls._query, variable_values=variable_values
         )))
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetUnionInput) -> typing.Awaitable[GetUnionResponse]:
+    async def execute_async(cls, client: Client, variable_values: _GetUnionInput) -> GetUnionResponse:
         return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )))

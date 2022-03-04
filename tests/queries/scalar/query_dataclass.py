@@ -44,7 +44,7 @@ class GetScalar:
             cls._query, variable_values=variable_values
         )))
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetScalarInput = {}) -> typing.Awaitable[GetScalarResponse]:
+    async def execute_async(cls, client: Client, variable_values: _GetScalarInput = {}) -> GetScalarResponse:
         return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )))

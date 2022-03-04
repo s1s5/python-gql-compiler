@@ -174,7 +174,7 @@ class GetRecursive:
             cls._query, variable_values=variable_values
         )))
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetRecursiveInput) -> typing.Awaitable[GetRecursiveResponse]:
+    async def execute_async(cls, client: Client, variable_values: _GetRecursiveInput) -> GetRecursiveResponse:
         return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
         )))
