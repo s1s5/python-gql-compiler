@@ -20,7 +20,7 @@ def run(
 ) -> None:
     query_parser = Parser(schema)
     query_renderer = Renderer(
-        schema, scalar_map=config["scalar_map"], render_as_typed_dict=config["output_type"] == "typeddict"
+        scalar_map=config["scalar_map"], render_as_typed_dict=config["output_type"] == "typeddict"
     )
 
     operation_library: Dict[str, List[OperationDefinitionNode]] = defaultdict(list)
@@ -28,7 +28,8 @@ def run(
 
     rules = [rule for rule in specified_rules if rule is not NoUnusedFragmentsRule]
     for filename in query_files:
-        parsed_query = parse(open(filename, "r").read())
+        with open(filename, "r") as fp:
+            parsed_query = parse(fp.read())
         errors = validate(schema, parsed_query, rules)
         if errors:
             raise Exception(errors)

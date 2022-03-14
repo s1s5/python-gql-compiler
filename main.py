@@ -2,6 +2,7 @@ import argparse
 import glob
 import json
 import os
+import sys
 from typing import List, Optional, Set
 
 import requests
@@ -74,11 +75,12 @@ def extract_query_files(queries: Optional[List[str]], config: Config) -> List[st
 def load_config_file(config_file: Optional[str]) -> Config:
     config = DEFAULT_CONFIG
     if config_file:
-        config.update(yaml.safe_load(open(config_file)))
+        with open(config_file) as fp:
+            config.update(yaml.safe_load(fp))
     return config
 
 
-def __entry_point():
+def _entry_point(sys_args: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-s",
@@ -103,7 +105,7 @@ def __entry_point():
     )
     parser.add_argument("-c", "--config", help="path where config yaml file", type=str)
 
-    args = parser.parse_args()
+    args = parser.parse_args(sys_args)
     schema = compile_schema_library(args.schema)
     config = load_config_file(args.config)
     query_files = extract_query_files(args.query, config)
@@ -116,4 +118,4 @@ def __entry_point():
 
 
 if __name__ == "__main__":
-    __entry_point()
+    _entry_point(sys.argv[1:])

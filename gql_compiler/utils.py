@@ -1,5 +1,5 @@
 import re
 
 
-def camel_case_to_lower_case(string: str) -> str:
+def camel_case_to_snake(string: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()

@@ -100,7 +100,7 @@ repos:
       - id: unittest
         language: system
         name: run unit test
-        entry: python -m unittest discover
+        entry: coverage run -m unittest discover
         pass_filenames: false
         always_run: true
         stages: [commit]

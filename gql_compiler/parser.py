@@ -60,7 +60,7 @@ def strip_type_node_attribute(type_: TypeNode) -> NamedTypeNode:
         return strip_type_node_attribute(type_.type)
     elif isinstance(type_, NamedTypeNode):
         return type_
-    raise Exception(f"Unknown type node {type_}")
+    raise Exception(f"Unknown type node {type_}")  # pragma: no cover
 
 
 @dataclass
@@ -176,13 +176,13 @@ class FieldToTypeMatcherVisitor(Visitor):
             for t in type_.types:  # type: ignore
                 names.append(t.name)
             return set(names)
-        raise Exception(f"Unexpected type {type_}")
+        raise Exception(f"Unexpected type {type_}")  # pragma: no cover
 
     def enter_inline_fragment(self, node: InlineFragmentNode, *_):
         name = node.type_condition.name.value
         type_info: GraphQLOutputType = copy.deepcopy(self.type_info.get_type())  # type: ignore
         current = self.current
-        if not isinstance(current, ParsedField):
+        if not isinstance(current, ParsedField):  # pragma: no cover
             raise Exception("Unexpected")
         field = ParsedField(node=node, name=name, type=type_info, interface=current)
         stripped_type_info = strip_output_type_attribute(type_info)
@@ -240,11 +240,11 @@ class FieldToTypeMatcherVisitor(Visitor):
         return node
 
 
-class InvalidQueryError(Exception):
-    def __init__(self, errors):
-        self.errors = errors
-        message = "\n".join(str(err) for err in errors)
-        super().__init__(message)
+# class InvalidQueryError(Exception):
+#     def __init__(self, errors):
+#         self.errors = errors
+#         message = "\n".join(str(err) for err in errors)
+#         super().__init__(message)
 
 
 class Parser:

@@ -8,7 +8,6 @@ from graphql import (
     GraphQLInputObjectType,
     GraphQLList,
     GraphQLNonNull,
-    GraphQLSchema,
     ListTypeNode,
     NamedTypeNode,
     NonNullTypeNode,
@@ -115,12 +114,10 @@ class InlineFragmentAssignConverter:
 class Renderer:
     def __init__(
         self,
-        schema: GraphQLSchema,
         scalar_map: Dict[str, ScalarConfig] = {},
         extra_import: str = "",
         render_as_typed_dict=False,
     ) -> None:
-        self.schema = schema
         self.scalar_map: Dict[str, ScalarConfig] = {
             "ID": {
                 "import": "",
@@ -153,7 +150,7 @@ class Renderer:
         parsed_query_list: List[ParsedQuery],
     ) -> str:
         buffer = CodeChunk()
-        self.__write_file_header(buffer)
+        self.write_file_header(buffer)
         buffer.write("import typing")
         if not self.render_as_typed_dict:
             buffer.write("import copy")
@@ -202,7 +199,7 @@ class Renderer:
             else:
                 self.render_class(buffer, f"{query.name}Response", query, query)
 
-            self.render_input_type(buffer, f"_{query.name}Input", query.variable_map)
+            self.render_variable_type(buffer, f"_{query.name}Input", query.variable_map)
 
             buffer.write("")
             buffer.write("")
@@ -256,30 +253,11 @@ class Renderer:
 
     def get_field_type_mapping(
         self, parsed_field: Union[ParsedField, ParsedQuery], parsed_query: ParsedQuery
-    ) -> Dict[str, str]:
-        m = {}
-        if isinstance(parsed_field, ParsedField):
-            if parsed_field.interface:
-                m = self.get_field_type_mapping(parsed_field.interface, parsed_query=parsed_query)
-        m.update(
-            {
-                field_name: self.type_to_string(field_value.type)
-                for field_name, field_value in parsed_field.fields.items()
-            }
-        )
-        if isinstance(parsed_field, ParsedField) and "__typename" in m:
-            name = strip_output_type_attribute(parsed_field.type).name
-            types = [f'"{x}"' for x in parsed_query.type_name_mapping[name]]
-            m["__typename"] = f"typing.Literal[{', '.join(types)}]"
-        return m
-
-    def get_field_type_mapping_raw(
-        self, parsed_field: Union[ParsedField, ParsedQuery], parsed_query: ParsedQuery
     ) -> Dict[str, Tuple[GraphQLOutputType, str]]:
         m = {}
         if isinstance(parsed_field, ParsedField):
             if parsed_field.interface:
-                m = self.get_field_type_mapping_raw(parsed_field.interface, parsed_query=parsed_query)
+                m = self.get_field_type_mapping(parsed_field.interface, parsed_query=parsed_query)
         m.update(
             {
                 field_name: (field_value.type, self.type_to_string(field_value.type))
@@ -289,6 +267,7 @@ class Renderer:
         if isinstance(parsed_field, ParsedField) and "__typename" in m:
             name = strip_output_type_attribute(parsed_field.type).name
             types = [f'"{x}"' for x in parsed_query.type_name_mapping[name]]
+            types = sorted(types)
             m["__typename"] = (m["__typename"][0], f"typing.Literal[{', '.join(types)}]")
         return m
 
@@ -330,7 +309,7 @@ class Renderer:
         parsed_field: Union[ParsedField, ParsedQuery],
         parsed_query: ParsedQuery,
     ):
-        field_mapping = self.get_field_type_mapping_raw(parsed_field, parsed_query)
+        field_mapping = self.get_field_type_mapping(parsed_field, parsed_query)
         if "__typename" in field_mapping:
             field_mapping["_typename"] = field_mapping.pop("__typename")
 
@@ -383,7 +362,7 @@ class Renderer:
         parsed_query: ParsedQuery,
     ):
         field_mapping = self.get_field_type_mapping(parsed_field, parsed_query)
-        r = [f'"{key}": {value}' for key, value in field_mapping.items()]
+        r = [f'"{key}": {value}' for key, (_, value) in field_mapping.items()]
         buffer.write("")
         buffer.write("")
         type_str = f'typing.TypedDict("{name}", {"{"}{", ".join(r)}{"}"})'
@@ -426,9 +405,11 @@ class Renderer:
             if isnull:
                 return f"typing.Optional[{type_name['value']}]"
             return type_name["value"]
-        raise Exception("Unknown type node")
+        raise Exception("Unknown type node")  # pragma: no cover
 
-    def render_input_type(self, buffer: CodeChunk, name: str, variable_map: Dict[str, ParsedQueryVariable]):
+    def render_variable_type(
+        self, buffer: CodeChunk, name: str, variable_map: Dict[str, ParsedQueryVariable]
+    ):
         r: List[str] = []
         nr: List[str] = []
         for key, pqv in variable_map.items():
@@ -520,7 +501,7 @@ class Renderer:
                     buffer.write("yield cls.Response(**rewrite_typename(r))  # type: ignore")
 
     @staticmethod
-    def __write_file_header(buffer: CodeChunk) -> None:
+    def write_file_header(buffer: CodeChunk) -> None:
         buffer.write("# @" + "generated AUTOGENERATED file. Do not Change!")
         buffer.write("# flake8: noqa")
         buffer.write("# fmt: off")
