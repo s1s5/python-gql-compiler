@@ -62,13 +62,14 @@ def extract_query_files(queries: Optional[List[str]], config: Config) -> List[st
         raise Exception("query file must be required")
 
     results: Set[str] = set()
-    for f_or_d in queries:
-        if not os.path.exists(f_or_d):
-            continue
-        if os.path.isfile(f_or_d):
-            results.add(f_or_d)
-        if os.path.isdir(f_or_d):
-            results.update(glob.glob(os.path.join(f_or_d, f'**/*.{config["query_ext"]}')))
+    for pattern in queries:
+        for f_or_d in glob.glob(pattern):
+            if not os.path.exists(f_or_d):
+                continue
+            if os.path.isfile(f_or_d):
+                results.add(f_or_d)
+            if os.path.isdir(f_or_d):
+                results.update(glob.glob(os.path.join(f_or_d, f'**/*.{config["query_ext"]}')))
     return list(results)
 
 
