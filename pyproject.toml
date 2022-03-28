@@ -6,9 +6,9 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-gql = "3.0.0rc0"
 PyYAML = "^6.0"
 requests = "^2.27.1"
+gql = {version = "3.1", extras = ["all"]}
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.931"
@@ -17,12 +17,11 @@ isort = "^5.10.1"
 black = "^22.1.0"
 mypy-extensions = "^0.4.3"
 pyproject-flake8 = "^0.0.1-alpha.2"
-gql = {version = "3.0.0rc0", extras = ["all"]}
-strawberry-graphql = {extras = ["debug-server"], version = "^0.96.0"}
 types-PyYAML = "^6.0.4"
 types-requests = "^2.27.8"
 pre-commit = "^2.17.0"
 coverage = "^6.3.2"
+strawberry-graphql = {extras = ["debug-server"], version = "^0.104.0"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

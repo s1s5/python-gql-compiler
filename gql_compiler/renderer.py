@@ -493,7 +493,7 @@ class Renderer:
         ):
             with buffer.write_block(
                 f"{async_prefix}for r in client.{method_name}("
-                "cls._query, variable_values=variable_values):"
+                "cls._query, variable_values=variable_values):  # type: ignore"
             ):
                 if self.render_as_typed_dict:
                     buffer.write("yield r  # type: ignore")

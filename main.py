@@ -111,6 +111,9 @@ def _entry_point(sys_args: List[str]):
     config = load_config_file(args.config)
     query_files = extract_query_files(args.query, config)
 
+    if args.output_type is not None:
+        config["output_type"] = args.output_type
+
     cli.run(
         schema=schema,
         query_files=query_files,

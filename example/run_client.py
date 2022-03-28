@@ -45,7 +45,7 @@ result3 = client_queries.GetInlineFragment.execute(client, {"e": "JEDI"})
 assert result3 == {"hero": {"__typename": "Droid", "id": "d-1", "name": "C-3PO", "primaryFunction": "search"}}
 
 result4 = client_queries.GetCustomScalar.execute(client)
-assert result4 == {"today": datetime.date(2022, 2, 9)}
+assert result4 == {"today": datetime.datetime.now().date()}
 
 result5 = client_queries.GetUnion.execute(client, {"text": "luke"})
 assert result5 == {"search": [{"__typename": "Human", "totalCredits": 3}]}

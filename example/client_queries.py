@@ -4,23 +4,11 @@
 # isort: skip_file
 
 import typing
-import copy
-from dataclasses import dataclass
 from gql import gql, Client
 import datetime
 
 
-def rewrite_typename(value: typing.Any):
-    if isinstance(value, dict) and '__typename' in value:
-        value = copy.copy(value)
-        value['_typename'] = value.pop('__typename')
-    return value
-
-
-
-@dataclass
-class GetScalarResponse:
-    hello: str
+GetScalarResponse = typing.TypedDict("GetScalarResponse", {"hello": str})
 
 
 _GetScalarInput__required = typing.TypedDict("_GetScalarInput__required", {})
@@ -32,8 +20,8 @@ class _GetScalarInput(_GetScalarInput__required, _GetScalarInput__not_required):
 
 
 class GetScalar:
-    Response = GetScalarResponse
-    Input = _GetScalarInput
+    Response: typing.TypeAlias = GetScalarResponse
+    Input: typing.TypeAlias = _GetScalarInput
     _query = gql('''
         query GetScalar {
           hello
@@ -41,30 +29,21 @@ class GetScalar:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetScalarInput = {}) -> GetScalarResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetScalarInput = {}) -> typing.Awaitable[GetScalarResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetScalarInput = {}) -> typing.Awaitable[GetScalarResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 Episode = typing.Literal["NEWHOPE", "EMPIRE", "JEDI"]
 
 
-@dataclass
-class GetObject__droid:
-    id: str
-    name: str
-    appearsIn: typing.List[Episode]
-    primaryFunction: str
+GetObject__droid = typing.TypedDict("GetObject__droid", {"id": str, "name": str, "appearsIn": typing.List[Episode], "primaryFunction": str})
 
 
-@dataclass
-class GetObjectResponse:
-    droid: GetObject__droid
-    def __init__(self, droid):
-        self.droid = GetObject__droid(**rewrite_typename(droid))
+GetObjectResponse = typing.TypedDict("GetObjectResponse", {"droid": GetObject__droid})
 
 
 _GetObjectInput__required = typing.TypedDict("_GetObjectInput__required", {"id": str})
@@ -76,8 +55,8 @@ class _GetObjectInput(_GetObjectInput__required, _GetObjectInput__not_required):
 
 
 class GetObject:
-    Response = GetObjectResponse
-    Input = _GetObjectInput
+    Response: typing.TypeAlias = GetObjectResponse
+    Input: typing.TypeAlias = _GetObjectInput
     _query = gql('''
         query GetObject($id: ID!) {
           droid(id: $id) {
@@ -87,27 +66,20 @@ class GetObject:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetObjectInput) -> GetObjectResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetObjectInput) -> typing.Awaitable[GetObjectResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetObjectInput) -> typing.Awaitable[GetObjectResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
-@dataclass
-class GetInterface__hero:
-    id: str
-    name: str
+GetInterface__hero = typing.TypedDict("GetInterface__hero", {"id": str, "name": str})
 
 
-@dataclass
-class GetInterfaceResponse:
-    hero: GetInterface__hero
-    def __init__(self, hero):
-        self.hero = GetInterface__hero(**rewrite_typename(hero))
+GetInterfaceResponse = typing.TypedDict("GetInterfaceResponse", {"hero": GetInterface__hero})
 
 
 _GetInterfaceInput__required = typing.TypedDict("_GetInterfaceInput__required", {"e": Episode})
@@ -119,8 +91,8 @@ class _GetInterfaceInput(_GetInterfaceInput__required, _GetInterfaceInput__not_r
 
 
 class GetInterface:
-    Response = GetInterfaceResponse
-    Input = _GetInterfaceInput
+    Response: typing.TypeAlias = GetInterfaceResponse
+    Input: typing.TypeAlias = _GetInterfaceInput
     _query = gql('''
         query GetInterface($e: Episode!) {
           hero(episode: $e) {
@@ -130,48 +102,27 @@ class GetInterface:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetInterfaceInput) -> GetInterfaceResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetInterfaceInput) -> typing.Awaitable[GetInterfaceResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetInterfaceInput) -> typing.Awaitable[GetInterfaceResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
-@dataclass
-class GetInlineFragment__hero__Droid:
-    id: str
-    name: str
-    primaryFunction: str
-    _typename: typing.Literal["Droid"]
+GetInlineFragment__hero__Droid = typing.TypedDict("GetInlineFragment__hero__Droid", {"__typename": typing.Literal["Droid"], "id": str, "name": str, "primaryFunction": str})
 
 
-@dataclass
-class GetInlineFragment__hero__Human:
-    id: str
-    name: str
-    totalCredits: int
-    _typename: typing.Literal["Human"]
+GetInlineFragment__hero__Human = typing.TypedDict("GetInlineFragment__hero__Human", {"__typename": typing.Literal["Human"], "id": str, "name": str, "totalCredits": int})
 
 
-@dataclass
-class GetInlineFragment__hero:
-    id: str
-    name: str
-    _typename: typing.Literal["Character"]
+__GetInlineFragment__hero = typing.TypedDict("__GetInlineFragment__hero", {"__typename": typing.Literal["Character"], "id": str, "name": str})
+GetInlineFragment__hero = typing.Union[__GetInlineFragment__hero, GetInlineFragment__hero__Human, GetInlineFragment__hero__Droid]
 
 
-@dataclass
-class GetInlineFragmentResponse:
-    hero: GetInlineFragment__hero
-    def __init__(self, hero):
-        __hero_map = {
-            "Human": GetInlineFragment__hero__Human,
-            "Droid": GetInlineFragment__hero__Droid,
-        }
-        self.hero = __hero_map.get(hero["__typename"], GetInlineFragment__hero)(**rewrite_typename(hero))
+GetInlineFragmentResponse = typing.TypedDict("GetInlineFragmentResponse", {"hero": GetInlineFragment__hero})
 
 
 _GetInlineFragmentInput__required = typing.TypedDict("_GetInlineFragmentInput__required", {"e": Episode})
@@ -183,8 +134,8 @@ class _GetInlineFragmentInput(_GetInlineFragmentInput__required, _GetInlineFragm
 
 
 class GetInlineFragment:
-    Response = GetInlineFragmentResponse
-    Input = _GetInlineFragmentInput
+    Response: typing.TypeAlias = GetInlineFragmentResponse
+    Input: typing.TypeAlias = _GetInlineFragmentInput
     _query = gql('''
         query GetInlineFragment($e: Episode!) {
           hero(episode: $e) {
@@ -196,19 +147,17 @@ class GetInlineFragment:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetInlineFragmentInput) -> GetInlineFragmentResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetInlineFragmentInput) -> typing.Awaitable[GetInlineFragmentResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetInlineFragmentInput) -> typing.Awaitable[GetInlineFragmentResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
-@dataclass
-class GetCustomScalarResponse:
-    today: datetime.date
+GetCustomScalarResponse = typing.TypedDict("GetCustomScalarResponse", {"today": datetime.date})
 
 
 _GetCustomScalarInput__required = typing.TypedDict("_GetCustomScalarInput__required", {})
@@ -220,8 +169,8 @@ class _GetCustomScalarInput(_GetCustomScalarInput__required, _GetCustomScalarInp
 
 
 class GetCustomScalar:
-    Response = GetCustomScalarResponse
-    Input = _GetCustomScalarInput
+    Response: typing.TypeAlias = GetCustomScalarResponse
+    Input: typing.TypeAlias = _GetCustomScalarInput
     _query = gql('''
         query GetCustomScalar {
           today
@@ -229,57 +178,33 @@ class GetCustomScalar:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetCustomScalarInput = {}) -> GetCustomScalarResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetCustomScalarInput = {}) -> typing.Awaitable[GetCustomScalarResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetCustomScalarInput = {}) -> typing.Awaitable[GetCustomScalarResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
-@dataclass
-class GetUnion__search__Starship:
-    name: str
-    _typename: typing.Literal["Starship"]
+GetUnion__search__Starship = typing.TypedDict("GetUnion__search__Starship", {"__typename": typing.Literal["Starship"], "name": str})
 
 
-@dataclass
-class GetUnion__search__Droid__friends:
-    name: str
+GetUnion__search__Droid__friends = typing.TypedDict("GetUnion__search__Droid__friends", {"name": str})
 
 
-@dataclass
-class GetUnion__search__Droid:
-    friends: typing.List[typing.Optional[GetUnion__search__Droid__friends]]
-    _typename: typing.Literal["Droid"]
-    def __init__(self, friends, _typename):
-        self.friends = [GetUnion__search__Droid__friends(**rewrite_typename(friends__iter)) if friends__iter else None for friends__iter in friends]
-        self._typename = _typename
+GetUnion__search__Droid = typing.TypedDict("GetUnion__search__Droid", {"__typename": typing.Literal["Droid"], "friends": typing.List[typing.Optional[GetUnion__search__Droid__friends]]})
 
 
-@dataclass
-class GetUnion__search__Human:
-    totalCredits: int
-    _typename: typing.Literal["Human"]
+GetUnion__search__Human = typing.TypedDict("GetUnion__search__Human", {"__typename": typing.Literal["Human"], "totalCredits": int})
 
 
-@dataclass
-class GetUnion__search:
-    _typename: typing.Literal["SearchResult"]
+__GetUnion__search = typing.TypedDict("__GetUnion__search", {"__typename": typing.Literal["SearchResult"]})
+GetUnion__search = typing.Union[__GetUnion__search, GetUnion__search__Human, GetUnion__search__Droid, GetUnion__search__Starship]
 
 
-@dataclass
-class GetUnionResponse:
-    search: typing.List[GetUnion__search]
-    def __init__(self, search):
-        __search_map = {
-            "Human": GetUnion__search__Human,
-            "Droid": GetUnion__search__Droid,
-            "Starship": GetUnion__search__Starship,
-        }
-        self.search = [__search_map.get(search__iter["__typename"], GetUnion__search)(**rewrite_typename(search__iter)) for search__iter in search]
+GetUnionResponse = typing.TypedDict("GetUnionResponse", {"search": typing.List[GetUnion__search]})
 
 
 _GetUnionInput__required = typing.TypedDict("_GetUnionInput__required", {"text": str})
@@ -291,8 +216,8 @@ class _GetUnionInput(_GetUnionInput__required, _GetUnionInput__not_required):
 
 
 class GetUnion:
-    Response = GetUnionResponse
-    Input = _GetUnionInput
+    Response: typing.TypeAlias = GetUnionResponse
+    Input: typing.TypeAlias = _GetUnionInput
     _query = gql('''
         query GetUnion($text: String!) {
           search(text: $text) {
@@ -305,123 +230,53 @@ class GetUnion:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetUnionInput) -> GetUnionResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetUnionInput) -> typing.Awaitable[GetUnionResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetUnionInput) -> typing.Awaitable[GetUnionResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
-@dataclass
-class GetRecursive__hero__Droid__friends__Droid__friends:
-    name: str
+GetRecursive__hero__Droid__friends__Droid__friends = typing.TypedDict("GetRecursive__hero__Droid__friends__Droid__friends", {"name": str})
 
 
-@dataclass
-class GetRecursive__hero__Droid__friends__Droid:
-    id: str
-    name: str
-    friends: typing.List[typing.Optional[GetRecursive__hero__Droid__friends__Droid__friends]]
-    _typename: typing.Literal["Droid"]
-    def __init__(self, id, name, friends, _typename):
-        self.id = id
-        self.name = name
-        self.friends = [GetRecursive__hero__Droid__friends__Droid__friends(**rewrite_typename(friends__iter)) if friends__iter else None for friends__iter in friends]
-        self._typename = _typename
+GetRecursive__hero__Droid__friends__Droid = typing.TypedDict("GetRecursive__hero__Droid__friends__Droid", {"__typename": typing.Literal["Droid"], "id": str, "name": str, "friends": typing.List[typing.Optional[GetRecursive__hero__Droid__friends__Droid__friends]]})
 
 
-@dataclass
-class GetRecursive__hero__Droid__friends__Human__starships:
-    name: str
+GetRecursive__hero__Droid__friends__Human__starships = typing.TypedDict("GetRecursive__hero__Droid__friends__Human__starships", {"name": str})
 
 
-@dataclass
-class GetRecursive__hero__Droid__friends__Human:
-    id: str
-    name: str
-    starships: typing.List[typing.Optional[GetRecursive__hero__Droid__friends__Human__starships]]
-    _typename: typing.Literal["Human"]
-    def __init__(self, id, name, starships, _typename):
-        self.id = id
-        self.name = name
-        self.starships = [GetRecursive__hero__Droid__friends__Human__starships(**rewrite_typename(starships__iter)) if starships__iter else None for starships__iter in starships]
-        self._typename = _typename
+GetRecursive__hero__Droid__friends__Human = typing.TypedDict("GetRecursive__hero__Droid__friends__Human", {"__typename": typing.Literal["Human"], "id": str, "name": str, "starships": typing.List[typing.Optional[GetRecursive__hero__Droid__friends__Human__starships]]})
 
 
-@dataclass
-class GetRecursive__hero__Droid__friends:
-    id: str
-    _typename: typing.Literal["Character"]
+__GetRecursive__hero__Droid__friends = typing.TypedDict("__GetRecursive__hero__Droid__friends", {"__typename": typing.Literal["Character"], "id": str})
+GetRecursive__hero__Droid__friends = typing.Union[__GetRecursive__hero__Droid__friends, GetRecursive__hero__Droid__friends__Human, GetRecursive__hero__Droid__friends__Droid]
 
 
-@dataclass
-class GetRecursive__hero__Droid:
-    name: str
-    primaryFunction: str
-    friends: typing.List[typing.Optional[GetRecursive__hero__Droid__friends]]
-    _typename: typing.Literal["Droid"]
-    def __init__(self, name, primaryFunction, friends, _typename):
-        self.name = name
-        self.primaryFunction = primaryFunction
-        __friends_map = {
-            "Human": GetRecursive__hero__Droid__friends__Human,
-            "Droid": GetRecursive__hero__Droid__friends__Droid,
-        }
-        self.friends = [__friends_map.get(friends__iter["__typename"], GetRecursive__hero__Droid__friends)(**rewrite_typename(friends__iter)) if friends__iter else None for friends__iter in friends]
-        self._typename = _typename
+GetRecursive__hero__Droid = typing.TypedDict("GetRecursive__hero__Droid", {"__typename": typing.Literal["Droid"], "name": str, "primaryFunction": str, "friends": typing.List[typing.Optional[GetRecursive__hero__Droid__friends]]})
 
 
-@dataclass
-class GetRecursive__hero__Human__friends__Droid:
-    id: str
-    name: str
-    _typename: typing.Literal["Droid"]
+GetRecursive__hero__Human__friends__Droid = typing.TypedDict("GetRecursive__hero__Human__friends__Droid", {"__typename": typing.Literal["Droid"], "id": str, "name": str})
 
 
-@dataclass
-class GetRecursive__hero__Human__friends__Human:
-    name: str
-    _typename: typing.Literal["Human"]
+GetRecursive__hero__Human__friends__Human = typing.TypedDict("GetRecursive__hero__Human__friends__Human", {"__typename": typing.Literal["Human"], "name": str})
 
 
-@dataclass
-class GetRecursive__hero__Human__friends:
-    _typename: typing.Literal["Character"]
+__GetRecursive__hero__Human__friends = typing.TypedDict("__GetRecursive__hero__Human__friends", {"__typename": typing.Literal["Character"]})
+GetRecursive__hero__Human__friends = typing.Union[__GetRecursive__hero__Human__friends, GetRecursive__hero__Human__friends__Human, GetRecursive__hero__Human__friends__Droid]
 
 
-@dataclass
-class GetRecursive__hero__Human:
-    name: str
-    friends: typing.List[typing.Optional[GetRecursive__hero__Human__friends]]
-    _typename: typing.Literal["Human"]
-    def __init__(self, name, friends, _typename):
-        self.name = name
-        __friends_map = {
-            "Human": GetRecursive__hero__Human__friends__Human,
-            "Droid": GetRecursive__hero__Human__friends__Droid,
-        }
-        self.friends = [__friends_map.get(friends__iter["__typename"], GetRecursive__hero__Human__friends)(**rewrite_typename(friends__iter)) if friends__iter else None for friends__iter in friends]
-        self._typename = _typename
+GetRecursive__hero__Human = typing.TypedDict("GetRecursive__hero__Human", {"__typename": typing.Literal["Human"], "name": str, "friends": typing.List[typing.Optional[GetRecursive__hero__Human__friends]]})
 
 
-@dataclass
-class GetRecursive__hero:
-    name: str
-    _typename: typing.Literal["Character"]
+__GetRecursive__hero = typing.TypedDict("__GetRecursive__hero", {"__typename": typing.Literal["Character"], "name": str})
+GetRecursive__hero = typing.Union[__GetRecursive__hero, GetRecursive__hero__Human, GetRecursive__hero__Droid]
 
 
-@dataclass
-class GetRecursiveResponse:
-    hero: GetRecursive__hero
-    def __init__(self, hero):
-        __hero_map = {
-            "Human": GetRecursive__hero__Human,
-            "Droid": GetRecursive__hero__Droid,
-        }
-        self.hero = __hero_map.get(hero["__typename"], GetRecursive__hero)(**rewrite_typename(hero))
+GetRecursiveResponse = typing.TypedDict("GetRecursiveResponse", {"hero": GetRecursive__hero})
 
 
 _GetRecursiveInput__required = typing.TypedDict("_GetRecursiveInput__required", {"episode": Episode})
@@ -433,8 +288,8 @@ class _GetRecursiveInput(_GetRecursiveInput__required, _GetRecursiveInput__not_r
 
 
 class GetRecursive:
-    Response = GetRecursiveResponse
-    Input = _GetRecursiveInput
+    Response: typing.TypeAlias = GetRecursiveResponse
+    Input: typing.TypeAlias = _GetRecursiveInput
     _query = gql('''
         query GetRecursive($episode: Episode!) {
           hero(episode: $episode) {
@@ -467,14 +322,14 @@ class GetRecursive:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _GetRecursiveInput) -> GetRecursiveResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _GetRecursiveInput) -> typing.Awaitable[GetRecursiveResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _GetRecursiveInput) -> typing.Awaitable[GetRecursiveResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
 AddStarshipInput__required = typing.TypedDict("AddStarshipInput__required", {"name": str})
@@ -485,17 +340,10 @@ class AddStarshipInput(AddStarshipInput__required, AddStarshipInput__not_require
     pass
 
 
-@dataclass
-class AddStarship__addStarship:
-    id: str
-    name: str
+AddStarship__addStarship = typing.TypedDict("AddStarship__addStarship", {"id": str, "name": str})
 
 
-@dataclass
-class AddStarshipResponse:
-    addStarship: AddStarship__addStarship
-    def __init__(self, addStarship):
-        self.addStarship = AddStarship__addStarship(**rewrite_typename(addStarship))
+AddStarshipResponse = typing.TypedDict("AddStarshipResponse", {"addStarship": AddStarship__addStarship})
 
 
 _AddStarshipInput__required = typing.TypedDict("_AddStarshipInput__required", {"input": AddStarshipInput})
@@ -507,8 +355,8 @@ class _AddStarshipInput(_AddStarshipInput__required, _AddStarshipInput__not_requ
 
 
 class AddStarship:
-    Response = AddStarshipResponse
-    Input = _AddStarshipInput
+    Response: typing.TypeAlias = AddStarshipResponse
+    Input: typing.TypeAlias = _AddStarshipInput
     _query = gql('''
         mutation AddStarship($input: AddStarshipInput!) {
           addStarship(input: $input) {
@@ -518,27 +366,20 @@ class AddStarship:
     ''')
     @classmethod
     def execute(cls, client: Client, variable_values: _AddStarshipInput) -> AddStarshipResponse:
-        return cls.Response(**rewrite_typename(client.execute(  # type: ignore
+        return client.execute(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
     @classmethod
-    async def execute_async(cls, client: Client, variable_values: _AddStarshipInput) -> typing.Awaitable[AddStarshipResponse]:
-        return cls.Response(**rewrite_typename(await client.execute_async(  # type: ignore
+    def execute_async(cls, client: Client, variable_values: _AddStarshipInput) -> typing.Awaitable[AddStarshipResponse]:
+        return client.execute_async(  # type: ignore
             cls._query, variable_values=variable_values
-        )))
+        )
 
 
-@dataclass
-class AllHuman__allHuman:
-    id: str
-    name: str
+AllHuman__allHuman = typing.TypedDict("AllHuman__allHuman", {"id": str, "name": str})
 
 
-@dataclass
-class AllHumanResponse:
-    allHuman: AllHuman__allHuman
-    def __init__(self, allHuman):
-        self.allHuman = AllHuman__allHuman(**rewrite_typename(allHuman))
+AllHumanResponse = typing.TypedDict("AllHumanResponse", {"allHuman": AllHuman__allHuman})
 
 
 _AllHumanInput__required = typing.TypedDict("_AllHumanInput__required", {})
@@ -550,8 +391,8 @@ class _AllHumanInput(_AllHumanInput__required, _AllHumanInput__not_required):
 
 
 class AllHuman:
-    Response = AllHumanResponse
-    Input = _AllHumanInput
+    Response: typing.TypeAlias = AllHumanResponse
+    Input: typing.TypeAlias = _AllHumanInput
     _query = gql('''
         subscription AllHuman {
           allHuman {
@@ -561,9 +402,9 @@ class AllHuman:
     ''')
     @classmethod
     def subscribe(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.Iterable[AllHumanResponse]:
-        for r in client.subscribe(cls._query, variable_values=variable_values):
-            yield cls.Response(**rewrite_typename(r))  # type: ignore
+        for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
+            yield r  # type: ignore
     @classmethod
     async def subscribe_async(cls, client: Client, variable_values: _AllHumanInput = {}) -> typing.AsyncIterable[AllHumanResponse]:
-        async for r in client.subscribe_async(cls._query, variable_values=variable_values):
-            yield cls.Response(**rewrite_typename(r))  # type: ignore
+        async for r in client.subscribe_async(cls._query, variable_values=variable_values):  # type: ignore
+            yield r  # type: ignore

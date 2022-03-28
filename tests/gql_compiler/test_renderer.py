@@ -525,7 +525,7 @@ class Test(unittest.TestCase):
                 """
                 @classmethod
                 def subscribe(cls, client: Client, variable_values: _Input) -> typing.Iterable[Response]:
-                    for r in client.subscribe(cls._query, variable_values=variable_values):
+                    for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
                         yield cls.Response(**rewrite_typename(r))  # type: ignore
                 """
             ),
@@ -539,7 +539,7 @@ class Test(unittest.TestCase):
                 """
                 @classmethod
                 async def subscribe_async(cls, client: Client, variable_values: _Input) -> typing.AsyncIterable[Response]:
-                    async for r in client.subscribe_async(cls._query, variable_values=variable_values):
+                    async for r in client.subscribe_async(cls._query, variable_values=variable_values):  # type: ignore
                         yield cls.Response(**rewrite_typename(r))  # type: ignore
                 """  # noqa
             ),

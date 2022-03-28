@@ -50,9 +50,9 @@ class AllHumanSubsc:
     ''')
     @classmethod
     def subscribe(cls, client: Client, variable_values: _AllHumanSubscInput = {}) -> typing.Iterable[AllHumanSubscResponse]:
-        for r in client.subscribe(cls._query, variable_values=variable_values):
+        for r in client.subscribe(cls._query, variable_values=variable_values):  # type: ignore
             yield cls.Response(**rewrite_typename(r))  # type: ignore
     @classmethod
     async def subscribe_async(cls, client: Client, variable_values: _AllHumanSubscInput = {}) -> typing.AsyncIterable[AllHumanSubscResponse]:
-        async for r in client.subscribe_async(cls._query, variable_values=variable_values):
+        async for r in client.subscribe_async(cls._query, variable_values=variable_values):  # type: ignore
             yield cls.Response(**rewrite_typename(r))  # type: ignore
